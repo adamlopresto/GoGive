@@ -22,6 +22,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="fake.domain.adamlopresto.gogive.RecipientActivity"
+            android:label="@string/title_activity_recipient"
+            android:parentActivityName="fake.domain.adamlopresto.gogive.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="fake.domain.adamlopresto.gogive.MainActivity" />
+        </activity>
+        <provider android:name="GoGiveContentProvider" android:exported="false" android:authorities="fake.domain.adamlopresto.gogive.contentprovider"></provider>
     </application>
 
 </manifest>
