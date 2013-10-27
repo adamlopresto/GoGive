@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import fake.domain.adamlopresto.gogive.db.DatabaseHelper;
+import fake.domain.adamlopresto.gogive.db.GiftsTable;
 import fake.domain.adamlopresto.gogive.db.RecipientsTable;
 /*
 import fake.domain.adamlopresto.godo.db.ContextsTable;
@@ -28,6 +29,8 @@ public class GoGiveContentProvider extends ContentProvider {
 	// Odd numbers have an ID, evens don't.
 	private static final int RECIPIENTS = 0;
 	private static final int RECIPIENT_ID = 1;
+	private static final int GIFTS = 2;
+	private static final int GIFT_ID = 3;
 	
 
 	public static final String AUTHORITY = "fake.domain.adamlopresto.gogive.contentprovider";
@@ -36,6 +39,8 @@ public class GoGiveContentProvider extends ContentProvider {
 
 	private static final String RECIPIENT_BASE_PATH = "recipients";
 	public static final Uri RECIPIENT_URI = Uri.withAppendedPath(BASE, RECIPIENT_BASE_PATH);
+	private static final String GIFT_BASE_PATH = "gifts";
+	public static final Uri GIFT_URI = Uri.withAppendedPath(BASE, GIFT_BASE_PATH);
 	
 	/*
 	public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE
@@ -50,6 +55,8 @@ public class GoGiveContentProvider extends ContentProvider {
 	static {
 		sURIMatcher.addURI(AUTHORITY, RECIPIENT_BASE_PATH, RECIPIENTS);
 		sURIMatcher.addURI(AUTHORITY, RECIPIENT_BASE_PATH+"/#", RECIPIENT_ID);
+		sURIMatcher.addURI(AUTHORITY, GIFT_BASE_PATH, GIFTS);
+		sURIMatcher.addURI(AUTHORITY, GIFT_BASE_PATH+"/#", GIFT_ID);
 	}
 
 	@Override
@@ -78,6 +85,9 @@ public class GoGiveContentProvider extends ContentProvider {
 		switch (uriType) {
 		case RECIPIENTS:
 			queryBuilder.setTables(RecipientsTable.TABLE);
+			break;
+		case GIFTS:
+			queryBuilder.setTables(GiftsTable.TABLE);
 			break;
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
@@ -111,6 +121,10 @@ public class GoGiveContentProvider extends ContentProvider {
 			rowsUpdated = sqlDB.delete(RecipientsTable.TABLE, selection, selectionArgs);
 			getContext().getContentResolver().notifyChange(RECIPIENT_URI, null);
 			return rowsUpdated;
+		case GIFTS:
+			rowsUpdated = sqlDB.delete(GiftsTable.TABLE, selection, selectionArgs);
+			getContext().getContentResolver().notifyChange(GIFT_URI, null);
+			return rowsUpdated;
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
 		}
@@ -130,6 +144,9 @@ public class GoGiveContentProvider extends ContentProvider {
 		switch (uriType) {
 		case RECIPIENTS:
 			id = sqlDB.insertOrThrow(RecipientsTable.TABLE, null, values);
+			break;
+		case GIFTS:
+			id = sqlDB.insertOrThrow(GiftsTable.TABLE, null, values);
 			break;
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
@@ -157,6 +174,10 @@ public class GoGiveContentProvider extends ContentProvider {
 		case RECIPIENTS:
 			rowsUpdated = sqlDB.update(RecipientsTable.TABLE, values, selection, selectionArgs);
 			getContext().getContentResolver().notifyChange(RECIPIENT_URI, null);
+			return rowsUpdated;
+		case GIFTS:
+			rowsUpdated = sqlDB.update(GiftsTable.TABLE, values, selection, selectionArgs);
+			getContext().getContentResolver().notifyChange(GIFT_URI, null);
 			return rowsUpdated;
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);

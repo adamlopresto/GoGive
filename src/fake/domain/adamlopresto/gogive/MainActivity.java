@@ -2,73 +2,49 @@ package fake.domain.adamlopresto.gogive;
 
 import java.text.NumberFormat;
 
-import android.app.ListActivity;
+import android.app.ExpandableListActivity;
 import android.app.LoaderManager;
+import android.content.Context;
 import android.content.CursorLoader;
-import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.CheckBox;
-import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
-import android.widget.SimpleCursorAdapter.ViewBinder;
+import android.widget.SimpleCursorTreeAdapter;
 import android.widget.TextView;
+import fake.domain.adamlopresto.gogive.db.GiftsTable;
 import fake.domain.adamlopresto.gogive.db.RecipientsTable;
 
-public class MainActivity extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class MainActivity extends ExpandableListActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 	
-	private SimpleCursorAdapter adapter;
+	private ExpandableListAdapter adapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+		//setContentView(R.layout.activity_main);
 		
-		adapter = new SimpleCursorAdapter(this, R.layout.main_item, null,
-				new String[]{RecipientsTable.COLUMN_NAME, RecipientsTable.COLUMN_NOTES, RecipientsTable.COLUMN_DONE, "spend", "summary"}, 
-				new int[]{R.id.recipient, R.id.recipient_notes, R.id.recipient, R.id.total_spend, R.id.summary}, 0);
-		
-		adapter.setViewBinder(new ViewBinder(){
-			@Override
-			public boolean setViewValue(View view, Cursor cursor,
-					int columnIndex) {
-				switch (columnIndex){
-				case 2:
-					view.setVisibility(TextUtils.isEmpty(cursor.getString(columnIndex)) ? View.GONE : View.VISIBLE);
-					return false;
-				case 3:
-					((CheckBox)view).setChecked(!cursor.isNull(columnIndex) && cursor.getInt(columnIndex) != 0);
-					return true;
-				case 4:
-					((TextView)view).setText(NumberFormat.getCurrencyInstance().format(cursor.getDouble(columnIndex)));
-					return true;
-				}
-				return false;
-			}
-			
-		});
+		adapter = new ExpandableListAdapter(this, getLoaderManager(), 
+				R.layout.main_item, 
+				new String[]{RecipientsTable.COLUMN_NAME, RecipientsTable.COLUMN_DONE, RecipientsTable.COLUMN_NOTES, "spend", "summary"}, 
+				new int[]{R.id.recipient, R.id.recipient, R.id.recipient_notes, R.id.total_spend, R.id.summary},
+				R.layout.gift_item, 
+				new String[]{GiftsTable.COLUMN_STATUS, GiftsTable.COLUMN_NAME, GiftsTable.COLUMN_PRICE, GiftsTable.COLUMN_NOTES}, 
+				new int[]{R.id.status, R.id.name, R.id.price, R.id.notes}
+				);
 		
 		setListAdapter(adapter);
 		
 	}
 	
-	/* (non-Javadoc)
-	 * @see android.app.ListActivity#onListItemClick(android.widget.ListView, android.view.View, int, long)
-	 */
-	@Override
-	protected void onListItemClick(ListView l, View v, int position, long id) {
-		startActivity(new Intent(this, RecipientActivity.class).putExtra(RecipientActivity.KEY, id));
-		super.onListItemClick(l, v, position, id);
-	}
-
 	@Override
 	protected void onResume() {
-		getLoaderManager().restartLoader(0, null, this);
+		getLoaderManager().restartLoader(-1, null, this);
 		super.onResume();
 	}
 
@@ -82,19 +58,120 @@ public class MainActivity extends ListActivity implements LoaderManager.LoaderCa
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 		return new CursorLoader(this, GoGiveContentProvider.RECIPIENT_URI, 
-				new String[]{RecipientsTable.COLUMN_ID, RecipientsTable.COLUMN_NAME, RecipientsTable.COLUMN_NOTES, RecipientsTable.COLUMN_DONE, "42 as spend", "'Planned: 5, purchased: 3' as summary"}, 
+				new String[]{RecipientsTable.COLUMN_ID, RecipientsTable.COLUMN_NAME, RecipientsTable.COLUMN_NOTES, RecipientsTable.COLUMN_DONE, 
+				"42 as spend", "'Planned: 5, purchased: 3' as summary"}, 
 				"hidden IS NULL OR NOT hidden", null, null);
 	}
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor c) {
-		DatabaseUtils.dumpCursor(c);
-		adapter.swapCursor(c);
+		adapter.setGroupCursor(c);
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
-		adapter.swapCursor(null);
+		adapter.setGroupCursor(null);
 	}
 
 }
+
+class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderManager.LoaderCallbacks<Cursor> {
+    private Context mContext;
+    private LoaderManager mManager;
+
+    public ExpandableListAdapter(
+            Context context, LoaderManager manager, 
+            int groupLayout, String[] groupFrom, int[] groupTo,
+            int childLayout, String[] childFrom, int[] childTo) {
+        super(context, null, groupLayout, groupFrom, groupTo, childLayout, childFrom, childTo);
+        mContext  = context;
+        mManager  = manager;
+    }
+    @Override
+    protected Cursor getChildrenCursor(Cursor groupCursor) {
+		DatabaseUtils.dumpCursor(groupCursor);
+		Log.e("GoGive", "current position: "+groupCursor.getPosition());
+        final long idGroup = groupCursor.getLong(groupCursor.getColumnIndex("_id"));
+        Bundle bundle = new Bundle();
+        bundle.putLong("idGroup", idGroup);
+        int groupPos = groupCursor.getPosition();
+        if (mManager.getLoader(groupPos) != null && !mManager.getLoader(groupPos).isReset()) {
+            mManager.restartLoader(groupPos, bundle, this);
+        }
+        else {
+            mManager.initLoader(groupPos, bundle, this);
+        }
+        return null;
+    }
+    @Override
+    public Loader<Cursor> onCreateLoader(int groupPos, Bundle bundle) {
+    	Log.e("GoGive", "creating loader for pos "+groupPos+" and bundle" + bundle.toString());
+        long idGroup = bundle.getLong("idGroup");
+        return new CursorLoader(
+                mContext,
+                GoGiveContentProvider.GIFT_URI,
+				new String[]{GiftsTable.COLUMN_ID, GiftsTable.COLUMN_STATUS, 
+                		GiftsTable.COLUMN_NAME, GiftsTable.COLUMN_PRICE, 
+                		GiftsTable.COLUMN_NOTES}, 
+                GiftsTable.COLUMN_RECIPIENT + " = ?",
+                new String[]{String.valueOf(idGroup)},
+                null //sort order
+        );
+    }
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+    	Log.e("GoGive", "Loader id: "+loader.getId());
+        setChildrenCursor(loader.getId(), cursor);
+    }
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+    }
+	/* (non-Javadoc)
+	 * @see android.widget.SimpleCursorTreeAdapter#bindChildView(android.view.View, android.content.Context, android.database.Cursor, boolean)
+	 */
+	@Override
+	protected void bindChildView(View view, Context context, Cursor cursor,
+			boolean isLastChild) {
+		super.bindChildView(view, context, cursor, isLastChild);
+		
+		((TextView)view.findViewById(R.id.status)).setText(cursor.getString(1));
+		((TextView)view.findViewById(R.id.name)).setText(cursor.getString(2));
+		((TextView)view.findViewById(R.id.price)).setText(NumberFormat.getCurrencyInstance().format(cursor.getDouble(3)));
+		TextView notes = ((TextView)view.findViewById(R.id.notes));
+		String notesStr = cursor.getString(4);
+		if (TextUtils.isEmpty(notesStr)){
+			notes.setVisibility(View.GONE);
+		} else {
+			notes.setVisibility(View.VISIBLE);
+			notes.setText(notesStr);
+		}
+
+
+	}
+
+	/* (non-Javadoc)
+	 * @see android.widget.SimpleCursorTreeAdapter#bindGroupView(android.view.View, android.content.Context, android.database.Cursor, boolean)
+	 */
+	@Override
+	protected void bindGroupView(View view, Context context, Cursor cursor,
+			boolean isExpanded) {
+		super.bindGroupView(view, context, cursor, isExpanded);
+		CheckBox rcptBox = (CheckBox)view.findViewById(R.id.recipient);
+		rcptBox.setText(cursor.getString(1));
+		rcptBox.setChecked(cursor.getInt(3) == 0);
+		TextView notes = (TextView)view.findViewById(R.id.recipient_notes);
+		String notesStr = cursor.getString(2);
+		if (TextUtils.isEmpty(notesStr)){
+			notes.setVisibility(View.GONE);
+		} else {
+			notes.setVisibility(View.VISIBLE);
+			notes.setText(notesStr);
+		}
+		((TextView)view.findViewById(R.id.total_spend)).setText(NumberFormat.getCurrencyInstance().format(cursor.getDouble(4)));
+		((TextView)view.findViewById(R.id.summary)).setText(cursor.getString(5));
+		
+	}
+    
+    
+}
+

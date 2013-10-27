@@ -1,72 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/card_background"
-    android:columnCount="3"
-    android:padding="8sp" >
+    android:paddingLeft="?android:attr/expandableListPreferredItemPaddingLeft"
+    android:paddingRight="8sp"
+    android:paddingTop="8sp"
+    android:paddingBottom="8sp"
+    >
 
     <CheckBox
         android:id="@+id/recipient"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_columnSpan="2"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:focusableInTouchMode="false"
+        android:focusable="false"
         android:text="Name"
-        android:textAppearance="?android:attr/textAppearanceLarge" 
-        />
-
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
         android:id="@+id/total_spend"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
         android:layout_gravity="right"
-        android:textAppearance="?android:attr/textAppearanceLarge" 
-        android:text="$50" />
+        android:layout_toRightOf="@id/recipient"
+        android:gravity="right"
+        android:text="$50"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
         android:id="@+id/summary"
-        android:layout_columnSpan="3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/recipient"
         android:text="Planned: 4, Purchased: 1" />
 
     <TextView
         android:id="@+id/recipient_notes"
-        android:layout_columnSpan="3"
-        android:layout_gravity="left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/summary"
         android:text="Recipient notes (if any)" />
-    
-    <View 
-        style="@style/Divider"
-        android:layout_columnSpan="3"
-        />
-    <TextView
-        android:text="Idea" 
-        />
-    <TextView
-        android:text="Gift card" 
-        android:layout_marginLeft="10sp"
-        />
-    <TextView
-        android:text="$20" 
-        android:layout_gravity="right"
-        android:gravity="right"
-        />
 
-    <View 
-        style="@style/Divider"
-        android:layout_columnSpan="3"
-        />
-    <TextView
-        android:text="Planned" 
-        />
-    <TextView
-        android:text="Fondue pot" 
-        android:layout_marginLeft="10sp"
-        />
-    <TextView
-        android:text="$30" 
-        android:layout_gravity="right"
-        android:gravity="right"
-        />
-
-</GridLayout>
+</RelativeLayout>
