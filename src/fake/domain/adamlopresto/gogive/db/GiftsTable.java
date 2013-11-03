@@ -3,6 +3,8 @@ package fake.domain.adamlopresto.gogive.db;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import fake.domain.adamlopresto.gogive.Status;
+
 import android.database.sqlite.SQLiteDatabase;
 
 public class GiftsTable {
@@ -28,7 +30,7 @@ public class GiftsTable {
 				+ "(" 
 				+ COLUMN_ID    + " INTEGER PRIMARY KEY AUTOINCREMENT, "
 				+ COLUMN_NAME  + " TEXT NOT NULL COLLATE NOCASE, "
-				+ COLUMN_STATUS + " TEXT NOT NULL,"
+				+ COLUMN_STATUS + " TEXT NOT NULL DEFAULT '"+ Status.Idea.toString()+"',"
 				+ COLUMN_RECIPIENT + " INTEGER NOT NULL REFERENCES "+RecipientsTable.TABLE+" ON DELETE CASCADE, "
 				+ COLUMN_PRICE + " INTEGER, "
 				+ COLUMN_NOTES + " TEXT"

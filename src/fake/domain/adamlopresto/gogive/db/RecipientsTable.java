@@ -24,8 +24,8 @@ public class RecipientsTable {
 				+ COLUMN_ID     + " integer primary key autoincrement, "
 				+ COLUMN_NAME   + " text not null collate nocase unique, "
 				+ COLUMN_NOTES  + " text, "
-				+ COLUMN_DONE   + " boolean, "
-				+ COLUMN_HIDDEN + " boolean"
+				+ COLUMN_DONE   + " boolean default 0, "
+				+ COLUMN_HIDDEN + " boolean default 0"
 				+ ")"
 		);
 	}
