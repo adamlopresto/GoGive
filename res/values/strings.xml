@@ -8,5 +8,6 @@
     <string name="name">Name</string>
     <string name="notes">Notes&#8230;</string>
     <string name="hidden">Hidden</string>
+    <string name="new_gift_idea">New gift idea</string>
 
 </resources>

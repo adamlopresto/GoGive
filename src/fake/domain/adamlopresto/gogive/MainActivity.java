@@ -6,6 +6,7 @@ import android.app.ExpandableListActivity;
 import android.app.LoaderManager;
 import android.content.Context;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -14,11 +15,14 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.CheckBox;
+import android.widget.ExpandableListView;
 import android.widget.SimpleCursorTreeAdapter;
 import android.widget.TextView;
 import fake.domain.adamlopresto.gogive.db.GiftsTable;
-import fake.domain.adamlopresto.gogive.db.RecipientsTable;
+import fake.domain.adamlopresto.gogive.db.RecipientsView;
 
 public class MainActivity extends ExpandableListActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 	
@@ -29,6 +33,7 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 		super.onCreate(savedInstanceState);
 		//setContentView(R.layout.activity_main);
 		
+		/*
 		adapter = new ExpandableListAdapter(this, getLoaderManager(), 
 				R.layout.main_item, 
 				new String[]{RecipientsTable.COLUMN_NAME, RecipientsTable.COLUMN_DONE, RecipientsTable.COLUMN_NOTES, "spend", "summary"}, 
@@ -37,8 +42,30 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 				new String[]{GiftsTable.COLUMN_STATUS, GiftsTable.COLUMN_NAME, GiftsTable.COLUMN_PRICE, GiftsTable.COLUMN_NOTES}, 
 				new int[]{R.id.status, R.id.name, R.id.price, R.id.notes}
 				);
+				*/
+		adapter = new ExpandableListAdapter(this, getLoaderManager());
 		
 		setListAdapter(adapter);
+		
+		getExpandableListView().setOnItemLongClickListener(new OnItemLongClickListener(){
+
+			@Override
+			public boolean onItemLongClick(AdapterView<?> parent, View view,
+					int position, long id) {
+
+				long packedPosition = getExpandableListView().getExpandableListPosition(position);
+				
+				if (ExpandableListView.getPackedPositionType(packedPosition) == ExpandableListView.PACKED_POSITION_TYPE_GROUP){
+//					Cursor o = (Cursor)getExpandableListAdapter().getGroup(ExpandableListView.getPackedPositionGroup(id));
+
+					long recipientId = adapter.getGroupId(ExpandableListView.getPackedPositionGroup(packedPosition));
+					startActivity(new Intent(MainActivity.this, RecipientActivity.class).putExtra(RecipientActivity.KEY, recipientId));
+
+					return true;
+				} 
+				return false;
+			}
+		});
 		
 	}
 	
@@ -58,9 +85,9 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 		return new CursorLoader(this, GoGiveContentProvider.RECIPIENT_URI, 
-				new String[]{RecipientsTable.COLUMN_ID, RecipientsTable.COLUMN_NAME, RecipientsTable.COLUMN_NOTES, RecipientsTable.COLUMN_DONE, 
-				"42 as spend", "'Planned: 5, purchased: 3' as summary"}, 
-				"hidden IS NULL OR NOT hidden", null, null);
+				new String[]{RecipientsView.COLUMN_ID, RecipientsView.COLUMN_NAME, RecipientsView.COLUMN_NOTES, RecipientsView.COLUMN_DONE, 
+				RecipientsView.COLUMN_SPEND, RecipientsView.COLUMN_PLANNED, RecipientsView.COLUMN_PURCHASED}, 
+				"hidden IS NULL OR NOT hidden", null, RecipientsView.COLUMN_NAME);
 	}
 
 	@Override
@@ -80,10 +107,9 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
     private LoaderManager mManager;
 
     public ExpandableListAdapter(
-            Context context, LoaderManager manager, 
-            int groupLayout, String[] groupFrom, int[] groupTo,
-            int childLayout, String[] childFrom, int[] childTo) {
-        super(context, null, groupLayout, groupFrom, groupTo, childLayout, childFrom, childTo);
+            Context context, LoaderManager manager) {
+        super(context, null, R.layout.main_item, null, null, 
+        		R.layout.gift_item, null, null);
         mContext  = context;
         mManager  = manager;
     }
@@ -132,7 +158,6 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
 	@Override
 	protected void bindChildView(View view, Context context, Cursor cursor,
 			boolean isLastChild) {
-		super.bindChildView(view, context, cursor, isLastChild);
 		
 		((TextView)view.findViewById(R.id.status)).setText(cursor.getString(1));
 		((TextView)view.findViewById(R.id.name)).setText(cursor.getString(2));
@@ -155,10 +180,9 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
 	@Override
 	protected void bindGroupView(View view, Context context, Cursor cursor,
 			boolean isExpanded) {
-		super.bindGroupView(view, context, cursor, isExpanded);
 		CheckBox rcptBox = (CheckBox)view.findViewById(R.id.recipient);
 		rcptBox.setText(cursor.getString(1));
-		rcptBox.setChecked(cursor.getInt(3) == 0);
+		rcptBox.setChecked(cursor.getInt(3) != 0);
 		TextView notes = (TextView)view.findViewById(R.id.recipient_notes);
 		String notesStr = cursor.getString(2);
 		if (TextUtils.isEmpty(notesStr)){
@@ -168,7 +192,9 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
 			notes.setText(notesStr);
 		}
 		((TextView)view.findViewById(R.id.total_spend)).setText(NumberFormat.getCurrencyInstance().format(cursor.getDouble(4)));
-		((TextView)view.findViewById(R.id.summary)).setText(cursor.getString(5));
+		int planned = cursor.getInt(5);
+		int purchased = cursor.getInt(6);
+		((TextView)view.findViewById(R.id.summary)).setText("Planned: "+planned+", purchased: "+purchased);
 		
 	}
     

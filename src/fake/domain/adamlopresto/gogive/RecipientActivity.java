@@ -1,13 +1,14 @@
 package fake.domain.adamlopresto.gogive;
 
-import fake.domain.adamlopresto.gogive.db.RecipientsTable;
 import android.app.Activity;
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import fake.domain.adamlopresto.gogive.db.RecipientsTable;
 
 public class RecipientActivity extends Activity {
 	
@@ -49,30 +50,34 @@ public class RecipientActivity extends Activity {
 				new String[]{String.valueOf(id)}, null);
 		
 		c.moveToFirst();
-		done.setText(c.getString(c.getColumnIndexOrThrow(RecipientsTable.COLUMN_DONE)));
+		done.setChecked(c.getInt(c.getColumnIndexOrThrow(RecipientsTable.COLUMN_DONE)) != 0);
 		name.setText(c.getString(c.getColumnIndexOrThrow(RecipientsTable.COLUMN_NAME)));
 		notes.setText(c.getString(c.getColumnIndexOrThrow(RecipientsTable.COLUMN_NOTES)));
-		hidden.setText(c.getString(c.getColumnIndexOrThrow(RecipientsTable.COLUMN_HIDDEN)));
+		hidden.setChecked(c.getInt(c.getColumnIndexOrThrow(RecipientsTable.COLUMN_HIDDEN)) != 0);
 
 		return true;
 	}
 
 	@Override
 	protected void onPause() {
-		// TODO Auto-generated method stub
 		super.onPause();
+		ContentValues cv = new ContentValues(4);
+		cv.put(RecipientsTable.COLUMN_DONE, done.isChecked() ? 1 : 0);
+		cv.put(RecipientsTable.COLUMN_NAME, name.getText().toString());
+		cv.put(RecipientsTable.COLUMN_NOTES, notes.getText().toString());
+		cv.put(RecipientsTable.COLUMN_HIDDEN, hidden.isChecked() ? 1 : 0);
+		getContentResolver().update(GoGiveContentProvider.RECIPIENT_URI, cv, RecipientsTable.COLUMN_ID +"=?", new String[]{String.valueOf(id)});
+		
 	}
 
 	@Override
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
 		extractFromBundle(savedInstanceState);
 		super.onRestoreInstanceState(savedInstanceState);
 	}
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		// TODO Auto-generated method stub
 		outState.putLong(KEY, id);
 		super.onSaveInstanceState(outState);
 	}
@@ -105,6 +110,7 @@ public class RecipientActivity extends Activity {
 			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
 			//
 			//NavUtils.navigateUpFromSameTask(this);
+			finish();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);

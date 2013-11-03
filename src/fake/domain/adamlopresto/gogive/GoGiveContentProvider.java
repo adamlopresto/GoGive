@@ -11,15 +11,7 @@ import android.net.Uri;
 import fake.domain.adamlopresto.gogive.db.DatabaseHelper;
 import fake.domain.adamlopresto.gogive.db.GiftsTable;
 import fake.domain.adamlopresto.gogive.db.RecipientsTable;
-/*
-import fake.domain.adamlopresto.godo.db.ContextsTable;
-import fake.domain.adamlopresto.godo.db.DatabaseHelper;
-import fake.domain.adamlopresto.godo.db.InstanceDependencyTable;
-import fake.domain.adamlopresto.godo.db.InstancesTable;
-import fake.domain.adamlopresto.godo.db.InstancesView;
-import fake.domain.adamlopresto.godo.db.RepetitionRulesTable;
-import fake.domain.adamlopresto.godo.db.TasksTable;
-*/
+import fake.domain.adamlopresto.gogive.db.RecipientsView;
 
 public class GoGiveContentProvider extends ContentProvider {
 
@@ -84,7 +76,7 @@ public class GoGiveContentProvider extends ContentProvider {
 		
 		switch (uriType) {
 		case RECIPIENTS:
-			queryBuilder.setTables(RecipientsTable.TABLE);
+			queryBuilder.setTables(RecipientsView.VIEW);
 			break;
 		case GIFTS:
 			queryBuilder.setTables(GiftsTable.TABLE);
