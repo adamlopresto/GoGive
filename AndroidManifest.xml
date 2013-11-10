@@ -30,7 +30,21 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="fake.domain.adamlopresto.gogive.MainActivity" />
         </activity>
-        <provider android:name="GoGiveContentProvider" android:exported="false" android:authorities="fake.domain.adamlopresto.gogive.contentprovider"></provider>
+
+        <provider
+            android:name="fake.domain.adamlopresto.gogive.GoGiveContentProvider"
+            android:authorities="fake.domain.adamlopresto.gogive.contentprovider"
+            android:exported="false" >
+        </provider>
+
+        <activity
+            android:name="fake.domain.adamlopresto.gogive.GiftActivity"
+            android:label="@string/title_activity_gift"
+            android:parentActivityName="fake.domain.adamlopresto.gogive.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="fake.domain.adamlopresto.gogive.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

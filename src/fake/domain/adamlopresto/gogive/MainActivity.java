@@ -9,16 +9,16 @@ import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.CheckBox;
 import android.widget.ExpandableListView;
+import android.widget.ImageButton;
 import android.widget.SimpleCursorTreeAdapter;
 import android.widget.TextView;
 import fake.domain.adamlopresto.gogive.db.GiftsTable;
@@ -76,6 +76,13 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 	}
 
 	@Override
+	public boolean onChildClick(ExpandableListView parent, View v,
+			int groupPosition, int childPosition, long id) {
+		startActivity(new Intent(this, GiftActivity.class).putExtra(GiftActivity.GIFT_KEY, id));
+		return true;
+	}
+
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
@@ -115,8 +122,6 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
     }
     @Override
     protected Cursor getChildrenCursor(Cursor groupCursor) {
-		DatabaseUtils.dumpCursor(groupCursor);
-		Log.e("GoGive", "current position: "+groupCursor.getPosition());
         final long idGroup = groupCursor.getLong(groupCursor.getColumnIndex("_id"));
         Bundle bundle = new Bundle();
         bundle.putLong("idGroup", idGroup);
@@ -131,7 +136,6 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
     }
     @Override
     public Loader<Cursor> onCreateLoader(int groupPos, Bundle bundle) {
-    	Log.e("GoGive", "creating loader for pos "+groupPos+" and bundle" + bundle.toString());
         long idGroup = bundle.getLong("idGroup");
         return new CursorLoader(
                 mContext,
@@ -146,7 +150,6 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
     }
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-    	Log.e("GoGive", "Loader id: "+loader.getId());
         setChildrenCursor(loader.getId(), cursor);
     }
     @Override
@@ -178,7 +181,7 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
 	 * @see android.widget.SimpleCursorTreeAdapter#bindGroupView(android.view.View, android.content.Context, android.database.Cursor, boolean)
 	 */
 	@Override
-	protected void bindGroupView(View view, Context context, Cursor cursor,
+	protected void bindGroupView(View view, final Context context, final Cursor cursor,
 			boolean isExpanded) {
 		CheckBox rcptBox = (CheckBox)view.findViewById(R.id.recipient);
 		rcptBox.setText(cursor.getString(1));
@@ -195,6 +198,22 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
 		int planned = cursor.getInt(5);
 		int purchased = cursor.getInt(6);
 		((TextView)view.findViewById(R.id.summary)).setText("Planned: "+planned+", purchased: "+purchased);
+		
+		ImageButton create = (ImageButton)view.findViewById(R.id.create_new);
+		if (isExpanded){
+			create.setVisibility(View.VISIBLE);
+			create.setOnClickListener(new OnClickListener(){
+				@Override
+				public void onClick(View v) {
+					context.startActivity(new Intent(context, GiftActivity.class)
+					                   .putExtra(GiftActivity.RECIPIENT_KEY, cursor.getLong(0)));
+				}
+			});
+			
+		} else {
+			create.setVisibility(View.GONE);
+		}
+
 		
 	}
     
