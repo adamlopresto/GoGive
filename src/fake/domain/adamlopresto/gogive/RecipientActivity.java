@@ -1,7 +1,9 @@
 package fake.domain.adamlopresto.gogive;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.Menu;
@@ -17,6 +19,8 @@ public class RecipientActivity extends Activity {
 	private EditText name;
 	private EditText notes;
 	private CheckBox hidden;
+	
+	private boolean deleting = false;
 	
 	public static final String KEY = "recipient";
 
@@ -61,12 +65,19 @@ public class RecipientActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		ContentValues cv = new ContentValues(4);
-		cv.put(RecipientsTable.COLUMN_DONE, done.isChecked() ? 1 : 0);
-		cv.put(RecipientsTable.COLUMN_NAME, name.getText().toString());
-		cv.put(RecipientsTable.COLUMN_NOTES, notes.getText().toString());
-		cv.put(RecipientsTable.COLUMN_HIDDEN, hidden.isChecked() ? 1 : 0);
-		getContentResolver().update(GoGiveContentProvider.RECIPIENT_URI, cv, RecipientsTable.COLUMN_ID +"=?", new String[]{String.valueOf(id)});
+		if (!deleting){
+			ContentValues cv = new ContentValues(4);
+			cv.put(RecipientsTable.COLUMN_DONE, done.isChecked() ? 1 : 0);
+			cv.put(RecipientsTable.COLUMN_NAME, name.getText().toString());
+			cv.put(RecipientsTable.COLUMN_NOTES, notes.getText().toString());
+			cv.put(RecipientsTable.COLUMN_HIDDEN, hidden.isChecked() ? 1 : 0);
+			if (id == -1L){
+				//new
+				id = Long.parseLong(getContentResolver().insert(GoGiveContentProvider.RECIPIENT_URI, cv).getLastPathSegment());
+			} else {
+				getContentResolver().update(GoGiveContentProvider.RECIPIENT_URI, cv, RecipientsTable.COLUMN_ID +"=?", new String[]{String.valueOf(id)});
+			}
+		}
 		
 	}
 
@@ -94,7 +105,7 @@ public class RecipientActivity extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.recipient, menu);
+		getMenuInflater().inflate(R.menu.delete, menu);
 		return true;
 	}
 
@@ -111,6 +122,22 @@ public class RecipientActivity extends Activity {
 			//
 			//NavUtils.navigateUpFromSameTask(this);
 			finish();
+			return true;
+		case R.id.delete:
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle(R.string.delete);
+			builder.setMessage(R.string.confirm_delete);
+			builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					deleting = true;
+					getContentResolver().delete(GoGiveContentProvider.RECIPIENT_URI, 
+							RecipientsTable.COLUMN_ID+"=?", new String[]{String.valueOf(id)});
+					finish();
+				}
+			});
+			builder.setNegativeButton(android.R.string.cancel, null);
+			builder.show();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);

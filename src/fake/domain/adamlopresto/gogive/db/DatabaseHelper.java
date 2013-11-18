@@ -36,6 +36,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		RecipientsTable.onCreate(db);
 		GiftsTable.onCreate(db);
 		RecipientsView.onCreate(db);
+		StoresTable.onCreate(db);
+		GiftsStoresTable.onCreate(db);
 	}
 
 	@Override
@@ -43,6 +45,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		RecipientsTable.onUpgrade(db, oldVersion, newVersion);
 		GiftsTable.onUpgrade(db, oldVersion, newVersion);
 		RecipientsView.onUpgrade(db, oldVersion, newVersion);
+		StoresTable.onUpgrade(db, oldVersion, newVersion);
+		GiftsStoresTable.onUpgrade(db, oldVersion, newVersion);
 	}
 	
 	@Override

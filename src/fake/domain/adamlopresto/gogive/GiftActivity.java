@@ -1,9 +1,11 @@
 package fake.domain.adamlopresto.gogive;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
@@ -21,6 +23,8 @@ public class GiftActivity extends Activity {
 	private EditText price;
 	private EditText notes;
 	private Spinner status;
+	
+	private boolean deleting = false;;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -41,8 +45,25 @@ public class GiftActivity extends Activity {
 	
 	@Override
 	protected void onPause() {
-		// TODO Auto-generated method stub
 		super.onPause();
+		if (!deleting){
+			ContentValues cv = new ContentValues(5);
+			cv.put(GiftsTable.COLUMN_RECIPIENT, recipient);
+			cv.put(GiftsTable.COLUMN_NAME, name.getText().toString());
+			cv.put(GiftsTable.COLUMN_PRICE, price.getText().toString());
+			cv.put(GiftsTable.COLUMN_NOTES, notes.getText().toString());
+			cv.put(GiftsTable.COLUMN_STATUS, Status.values()[status.getSelectedItemPosition()].name());
+
+			if (id == -1L){
+				//new
+				id = Long.parseLong(getContentResolver().insert(GoGiveContentProvider.GIFT_URI, cv).getLastPathSegment());
+			} else {
+				//update
+				getContentResolver().update(GoGiveContentProvider.GIFT_URI, cv, 
+						GiftsTable.COLUMN_ID + "=?",
+						new String[]{String.valueOf(id)});
+			}
+		}
 	}
 
 	@Override
@@ -77,21 +98,11 @@ public class GiftActivity extends Activity {
 			notes.setText(c.getString(1));
 			price.setText(c.getString(2));
 			recipient = c.getLong(3);
-			String statStr = c.getString(4);
-			Status stat = Status.valueOf(statStr);
-			int ord = stat.ordinal();
-			Log.e("GoGive", "String: '"+statStr+"', Status: '"+stat+"', ordinal: "+ord);
-			Log.e("GoGive", "Values "+Status.Given+Status.Given.ordinal());
-			Log.e("GoGive", "Values "+Status.Idea+Status.Idea.ordinal());
-			Log.e("GoGive", "Values "+Status.Planned+Status.Planned.ordinal());
-			Log.e("GoGive", "Values "+Status.Purchased+Status.Purchased.ordinal());
-			Log.e("GoGive", "Values "+Status.Rejected+Status.Rejected.ordinal());
 			status.setSelection(Status.valueOf(c.getString(4)).ordinal());
 
 			return true;
 		} else if ((tmpId = b.getLong(RECIPIENT_KEY, -1L)) != -1L){
 			recipient = tmpId;
-			status.setSelection(1);
 		}
 		
 		return false;
@@ -109,7 +120,7 @@ public class GiftActivity extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.gift, menu);
+		getMenuInflater().inflate(R.menu.delete, menu);
 		return true;
 	}
 
@@ -126,6 +137,22 @@ public class GiftActivity extends Activity {
 			//
 //			NavUtils.navigateUpFromSameTask(this);
 			finish();
+			return true;
+		case R.id.delete:
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle(R.string.delete);
+			builder.setMessage(R.string.confirm_delete);
+			builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					deleting = true;
+					getContentResolver().delete(GoGiveContentProvider.GIFT_URI, 
+							GiftsTable.COLUMN_ID+"=?", new String[]{String.valueOf(id)});
+					finish();
+				}
+			});
+			builder.setNegativeButton(android.R.string.cancel, null);
+			builder.show();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);

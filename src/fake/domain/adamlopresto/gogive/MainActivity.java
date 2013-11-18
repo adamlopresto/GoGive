@@ -12,6 +12,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -27,24 +28,24 @@ import fake.domain.adamlopresto.gogive.db.RecipientsView;
 public class MainActivity extends ExpandableListActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 	
 	private ExpandableListAdapter adapter;
-
+	private boolean showEveryone = false;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		//setContentView(R.layout.activity_main);
-		
-		/*
-		adapter = new ExpandableListAdapter(this, getLoaderManager(), 
-				R.layout.main_item, 
-				new String[]{RecipientsTable.COLUMN_NAME, RecipientsTable.COLUMN_DONE, RecipientsTable.COLUMN_NOTES, "spend", "summary"}, 
-				new int[]{R.id.recipient, R.id.recipient, R.id.recipient_notes, R.id.total_spend, R.id.summary},
-				R.layout.gift_item, 
-				new String[]{GiftsTable.COLUMN_STATUS, GiftsTable.COLUMN_NAME, GiftsTable.COLUMN_PRICE, GiftsTable.COLUMN_NOTES}, 
-				new int[]{R.id.status, R.id.name, R.id.price, R.id.notes}
-				);
-				*/
+
 		adapter = new ExpandableListAdapter(this, getLoaderManager());
 		
+		ExpandableListView lv = getExpandableListView();
+		View footer = View.inflate(this, R.layout.main_footer, null);
+		lv.addFooterView(footer, null, false);
+		footer.findViewById(R.id.new_recipient).setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				startActivity(new Intent(MainActivity.this, RecipientActivity.class));
+			}
+		});
+
 		setListAdapter(adapter);
 		
 		getExpandableListView().setOnItemLongClickListener(new OnItemLongClickListener(){
@@ -72,7 +73,10 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 	@Override
 	protected void onResume() {
 		getLoaderManager().restartLoader(-1, null, this);
+
 		super.onResume();
+
+		
 	}
 
 	@Override
@@ -90,11 +94,25 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 	}
 
 	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()){
+		case R.id.action_show:
+			showEveryone = !showEveryone;
+			item.setChecked(showEveryone);
+			getLoaderManager().restartLoader(-1, null, this);
+			return true;
+
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 		return new CursorLoader(this, GoGiveContentProvider.RECIPIENT_URI, 
 				new String[]{RecipientsView.COLUMN_ID, RecipientsView.COLUMN_NAME, RecipientsView.COLUMN_NOTES, RecipientsView.COLUMN_DONE, 
 				RecipientsView.COLUMN_SPEND, RecipientsView.COLUMN_PLANNED, RecipientsView.COLUMN_PURCHASED}, 
-				"hidden IS NULL OR NOT hidden", null, RecipientsView.COLUMN_NAME);
+				showEveryone ? null : "hidden IS NULL OR NOT hidden", 
+				null, RecipientsView.COLUMN_NAME);
 	}
 
 	@Override
@@ -202,11 +220,12 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
 		ImageButton create = (ImageButton)view.findViewById(R.id.create_new);
 		if (isExpanded){
 			create.setVisibility(View.VISIBLE);
+			final long recipient = cursor.getLong(0);
 			create.setOnClickListener(new OnClickListener(){
 				@Override
 				public void onClick(View v) {
 					context.startActivity(new Intent(context, GiftActivity.class)
-					                   .putExtra(GiftActivity.RECIPIENT_KEY, cursor.getLong(0)));
+					                   .putExtra(GiftActivity.RECIPIENT_KEY, recipient));
 				}
 			});
 			
