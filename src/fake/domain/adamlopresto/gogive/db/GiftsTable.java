@@ -33,7 +33,8 @@ public class GiftsTable {
 				+ COLUMN_STATUS + " TEXT NOT NULL DEFAULT '"+ Status.Idea.toString()+"',"
 				+ COLUMN_RECIPIENT + " INTEGER NOT NULL REFERENCES "+RecipientsTable.TABLE+" ON DELETE CASCADE, "
 				+ COLUMN_PRICE + " INTEGER, "
-				+ COLUMN_NOTES + " TEXT"
+				+ COLUMN_NOTES + " TEXT, "
+				+ COLUMN_DATE + " TEXT DEFAULT CURRENT_DATE"
 				+ ")"
 		);
 	}

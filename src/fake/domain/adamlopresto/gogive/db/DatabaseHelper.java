@@ -1,5 +1,8 @@
 package fake.domain.adamlopresto.gogive.db;
 
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -7,6 +10,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DatabaseHelper extends SQLiteOpenHelper {
 	
 	private static final String DATABASE_NAME = "GoGive";
+	
+	public static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 	
 	/*
 	 * Version history:

@@ -1,5 +1,7 @@
 package fake.domain.adamlopresto.gogive;
 
+import java.util.Date;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentValues;
@@ -10,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Spinner;
+import fake.domain.adamlopresto.gogive.db.DatabaseHelper;
 import fake.domain.adamlopresto.gogive.db.GiftsTable;
 
 public class GiftActivity extends Activity {
@@ -47,12 +50,14 @@ public class GiftActivity extends Activity {
 	protected void onPause() {
 		super.onPause();
 		if (!deleting){
-			ContentValues cv = new ContentValues(5);
+			ContentValues cv = new ContentValues(6);
 			cv.put(GiftsTable.COLUMN_RECIPIENT, recipient);
 			cv.put(GiftsTable.COLUMN_NAME, name.getText().toString());
 			cv.put(GiftsTable.COLUMN_PRICE, price.getText().toString());
 			cv.put(GiftsTable.COLUMN_NOTES, notes.getText().toString());
 			cv.put(GiftsTable.COLUMN_STATUS, Status.values()[status.getSelectedItemPosition()].name());
+			cv.put(GiftsTable.COLUMN_DATE, DatabaseHelper.format.format(new Date()));
+
 
 			if (id == -1L){
 				//new

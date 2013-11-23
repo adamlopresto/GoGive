@@ -30,9 +30,14 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 	private ExpandableListAdapter adapter;
 	private boolean showEveryone = false;
 	
+	private int lastPosition = -1;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		if (savedInstanceState != null)
+			lastPosition = savedInstanceState.getInt("lastPosition", -1);
 
 		adapter = new ExpandableListAdapter(this, getLoaderManager());
 		
@@ -58,6 +63,8 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 				
 				if (ExpandableListView.getPackedPositionType(packedPosition) == ExpandableListView.PACKED_POSITION_TYPE_GROUP){
 //					Cursor o = (Cursor)getExpandableListAdapter().getGroup(ExpandableListView.getPackedPositionGroup(id));
+					
+					lastPosition = ExpandableListView.getPackedPositionGroup(packedPosition);
 
 					long recipientId = adapter.getGroupId(ExpandableListView.getPackedPositionGroup(packedPosition));
 					startActivity(new Intent(MainActivity.this, RecipientActivity.class).putExtra(RecipientActivity.KEY, recipientId));
@@ -73,15 +80,22 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 	@Override
 	protected void onResume() {
 		getLoaderManager().restartLoader(-1, null, this);
-
+		
 		super.onResume();
 
 		
 	}
 
 	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		outState.putInt("lastPosition", lastPosition);
+		super.onSaveInstanceState(outState);
+	}
+
+	@Override
 	public boolean onChildClick(ExpandableListView parent, View v,
 			int groupPosition, int childPosition, long id) {
+		lastPosition = groupPosition;
 		startActivity(new Intent(this, GiftActivity.class).putExtra(GiftActivity.GIFT_KEY, id));
 		return true;
 	}
@@ -118,6 +132,13 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor c) {
 		adapter.setGroupCursor(c);
+
+		if (lastPosition != -1){
+			ExpandableListView lv = getExpandableListView();
+			lv.expandGroup(lastPosition);
+			lv.setSelection(lv.getFlatListPosition(ExpandableListView.getPackedPositionForGroup(lastPosition)));
+		}
+
 	}
 
 	@Override
@@ -163,7 +184,16 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
                 		GiftsTable.COLUMN_NOTES}, 
                 GiftsTable.COLUMN_RECIPIENT + " = ?",
                 new String[]{String.valueOf(idGroup)},
-                null //sort order
+                "CASE "+GiftsTable.COLUMN_STATUS+
+                	" WHEN '"+Status.Purchased+"' THEN 0 " +
+                	" WHEN '"+Status.Planned  +"' THEN 1 " +
+                	" WHEN '"+Status.Idea     +"' THEN 2 " +
+                	" WHEN '"+Status.Given    +"' THEN 3 " +
+                	" WHEN '"+Status.Rejected +"' THEN 4 " +
+                "END, "+
+                "CASE WHEN "+GiftsTable.COLUMN_STATUS+" IN " +
+                		"('"+Status.Purchased+"','"+Status.Planned+"') THEN "+GiftsTable.COLUMN_NAME+
+        		    " ELSE "+GiftsTable.COLUMN_DATE+" END"
         );
     }
     @Override
@@ -173,9 +203,7 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
     }
-	/* (non-Javadoc)
-	 * @see android.widget.SimpleCursorTreeAdapter#bindChildView(android.view.View, android.content.Context, android.database.Cursor, boolean)
-	 */
+
 	@Override
 	protected void bindChildView(View view, Context context, Cursor cursor,
 			boolean isLastChild) {
@@ -195,9 +223,6 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
 
 	}
 
-	/* (non-Javadoc)
-	 * @see android.widget.SimpleCursorTreeAdapter#bindGroupView(android.view.View, android.content.Context, android.database.Cursor, boolean)
-	 */
 	@Override
 	protected void bindGroupView(View view, final Context context, final Cursor cursor,
 			boolean isExpanded) {
