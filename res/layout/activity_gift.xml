@@ -18,7 +18,7 @@
         android:entries="@array/statuses" />
 
     <TextView
-        android:text="@string/name" 
+        android:text="@string/gift" 
         android:layout_width="wrap_content"
         />
     <EditText
