@@ -32,7 +32,7 @@ public class GiftActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_gift);
+		setContentView(R.layout.activity_gift_header);
 		
 		// Show the Up button in the action bar.
 		setupActionBar();
