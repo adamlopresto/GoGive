@@ -82,8 +82,6 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 		getLoaderManager().restartLoader(-1, null, this);
 		
 		super.onResume();
-
-		
 	}
 
 	@Override

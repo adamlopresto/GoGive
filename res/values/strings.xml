@@ -18,5 +18,9 @@
     <string name="create_new_recipient">Create new recipient</string>
     <string name="action_show">Show everyone</string>
     <string name="new_person">Add person</string>
+    <string name="add_to_store">Add to store</string>
+    <string name="choose_a_store">Choose a store</string>
+    <string name="create_a_new_store">Create a new store</string>
+    <string name="store_name">Store name</string>
 
 </resources>

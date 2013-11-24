@@ -16,8 +16,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	/*
 	 * Version history:
 	 * 1: initial release
+	 * 2: add GiftsStoresView
 	 */	
-	private static final int CURRENT_VERSION = 1;
+	private static final int CURRENT_VERSION = 2;
 	
 	private static DatabaseHelper mInstance;
 	
@@ -43,6 +44,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		RecipientsView.onCreate(db);
 		StoresTable.onCreate(db);
 		GiftsStoresTable.onCreate(db);
+		GiftsStoresView.onCreate(db);
 	}
 
 	@Override
@@ -52,6 +54,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		RecipientsView.onUpgrade(db, oldVersion, newVersion);
 		StoresTable.onUpgrade(db, oldVersion, newVersion);
 		GiftsStoresTable.onUpgrade(db, oldVersion, newVersion);
+		GiftsStoresView.onUpgrade(db, oldVersion, newVersion);
 	}
 	
 	@Override

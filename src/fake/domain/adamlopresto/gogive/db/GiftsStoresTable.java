@@ -18,12 +18,16 @@ public class GiftsStoresTable {
 				+ "(" 
 				+ COLUMN_ID    + " INTEGER PRIMARY KEY AUTOINCREMENT, "
 				+ COLUMN_GIFT + " INTEGER NOT NULL REFERENCES "+GiftsTable.TABLE+" ON DELETE CASCADE, "
-				+ COLUMN_STORE + " INTEGER NOT NULL REFERENCES "+StoresTable.TABLE+" ON DELETE CASCADE "
-				+ ")"
+				+ COLUMN_STORE + " INTEGER NOT NULL REFERENCES "+StoresTable.TABLE+" ON DELETE CASCADE, "
+				+ "UNIQUE("+COLUMN_GIFT+", "+COLUMN_STORE+"))"
 		);
 	}
 
 	public static void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
+		if (oldVersion < 2){
+			db.execSQL("DROP TABLE "+TABLE);
+			onCreate(db);
+		}
 	}
 
 	public static void checkColumns(String[] projection) {
