@@ -11,14 +11,20 @@ import android.content.DialogInterface;
 import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 import fake.domain.adamlopresto.gogive.db.DatabaseHelper;
 import fake.domain.adamlopresto.gogive.db.GiftsStoresTable;
 import fake.domain.adamlopresto.gogive.db.GiftsStoresView;
@@ -79,6 +85,16 @@ public class GiftActivity extends ListActivity implements
 				new String[] { GiftsStoresView.COLUMN_STORE_NAME },
 				new int[] { android.R.id.text1 }, 0);
 		setListAdapter(adapter);
+
+		getListView().setOnItemLongClickListener(new OnItemLongClickListener(){
+
+			@Override
+			public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+					int arg2, long giftStoreId) {
+				getContentResolver().delete(GoGiveContentProvider.GIFTS_STORES_URI, "_id = ?", new String[]{String.valueOf(giftStoreId)});
+				return true;
+			}
+		});
 
 		if (!extractFromBundle(savedInstanceState))
 			extractFromBundle(getIntent().getExtras());
@@ -260,12 +276,36 @@ public class GiftActivity extends ListActivity implements
 				}
 			}, StoresTable.COLUMN_NAME);
 			builder.setTitle(R.string.choose_a_store);
+			builder.setNegativeButton(android.R.string.cancel, null);
 			builder.setNeutralButton(R.string.create_a_new_store, new DialogInterface.OnClickListener() {
-				
 				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					//AlertDialog.Builder innerBuilder = new AlertDialog.Builder(GiftActivity.this);
-					//TODO
+				public void onClick(final DialogInterface dialog, int which) {
+					AlertDialog.Builder innerBuilder = new AlertDialog.Builder(GiftActivity.this);
+					final TextView newStoreName = (TextView)getLayoutInflater().inflate(R.layout.new_store_dialog, null);
+					innerBuilder.setView(newStoreName);
+					innerBuilder.setPositiveButton("Create", new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface innerDialog, int which) {
+							String name = newStoreName.getText().toString();
+							ContentValues values = new ContentValues(2);
+							values.put(StoresTable.COLUMN_NAME, name);
+							try {
+								Uri newStore = getContentResolver().insert(GoGiveContentProvider.STORES_URI, values);
+								long storeId = Long.parseLong(newStore.getLastPathSegment());
+								values.clear();
+								values.put(GiftsStoresTable.COLUMN_STORE, storeId);
+								values.put(GiftsStoresTable.COLUMN_GIFT, id);
+								getContentResolver().insert(GoGiveContentProvider.GIFTS_STORES_URI, values);
+								Toast.makeText(GiftActivity.this, "Added to store", Toast.LENGTH_SHORT).show();
+							} catch (Exception e){
+								Toast.makeText(GiftActivity.this, "Failed to create store: "+e, Toast.LENGTH_LONG).show();
+								Log.e("GoGive", "Failed to create store: "+e);
+							}
+							dialog.dismiss();
+						}
+					});
+					innerBuilder.setNegativeButton(android.R.string.cancel, null);
+					innerBuilder.show();
 				}
 			});
 			builder.show();
