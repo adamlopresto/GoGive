@@ -45,6 +45,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="fake.domain.adamlopresto.gogive.MainActivity" />
         </activity>
+        <activity
+            android:name="fake.domain.adamlopresto.gogive.ShoppingActivity"
+            android:label="@string/title_activity_shopping" >
+        </activity>
     </application>
 
 </manifest>

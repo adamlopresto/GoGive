@@ -5,5 +5,6 @@
         android:orderInCategory="100"
         android:showAsAction="never"
         android:title="@string/action_show" android:checkable="true"/>
+    <item android:id="@+id/action_shop" android:title="Shop" android:showAsAction="always"></item>
 
 </menu>

@@ -14,21 +14,16 @@ import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemLongClickListener;
-import android.widget.CheckBox;
 import android.widget.ExpandableListView;
-import android.widget.ImageButton;
 import android.widget.SimpleCursorTreeAdapter;
 import android.widget.TextView;
+import fake.domain.adamlopresto.gogive.db.GiftsStoresView;
 import fake.domain.adamlopresto.gogive.db.GiftsTable;
-import fake.domain.adamlopresto.gogive.db.RecipientsView;
+import fake.domain.adamlopresto.gogive.db.StoresTable;
 
-public class MainActivity extends ExpandableListActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class ShoppingActivity extends ExpandableListActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 	
-	private ExpandableListAdapter adapter;
-	private boolean showEveryone = false;
+	private ShoppingExpandableListAdapter adapter;
 	
 	private int lastPosition = -1;
 	
@@ -39,20 +34,11 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 		if (savedInstanceState != null)
 			lastPosition = savedInstanceState.getInt("lastPosition", -1);
 
-		adapter = new ExpandableListAdapter(this, getLoaderManager());
+		adapter = new ShoppingExpandableListAdapter(this, getLoaderManager());
 		
-		ExpandableListView lv = getExpandableListView();
-		View footer = View.inflate(this, R.layout.main_footer, null);
-		lv.addFooterView(footer, null, false);
-		footer.findViewById(R.id.new_recipient).setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				startActivity(new Intent(MainActivity.this, RecipientActivity.class));
-			}
-		});
-
 		setListAdapter(adapter);
 		
+		/*
 		getExpandableListView().setOnItemLongClickListener(new OnItemLongClickListener(){
 
 			@Override
@@ -67,13 +53,14 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 					lastPosition = ExpandableListView.getPackedPositionGroup(packedPosition);
 
 					long recipientId = adapter.getGroupId(ExpandableListView.getPackedPositionGroup(packedPosition));
-					startActivity(new Intent(MainActivity.this, RecipientActivity.class).putExtra(RecipientActivity.KEY, recipientId));
+					startActivity(new Intent(ShoppingActivity.this, RecipientActivity.class).putExtra(RecipientActivity.KEY, recipientId));
 
 					return true;
 				} 
 				return false;
 			}
 		});
+		*/
 		
 	}
 	
@@ -94,7 +81,8 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 	public boolean onChildClick(ExpandableListView parent, View v,
 			int groupPosition, int childPosition, long id) {
 		lastPosition = groupPosition;
-		startActivity(new Intent(this, GiftActivity.class).putExtra(GiftActivity.GIFT_KEY, id));
+		startActivity(new Intent(this, GiftActivity.class).putExtra(GiftActivity.GIFT_KEY, 
+				((Long)v.getTag()).longValue()));
 		return true;
 	}
 
@@ -107,27 +95,26 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		/*
 		switch(item.getItemId()){
 		case R.id.action_show:
 			showEveryone = !showEveryone;
 			item.setChecked(showEveryone);
 			getLoaderManager().restartLoader(-1, null, this);
 			return true;
-		case R.id.action_shop:
-			startActivity(new Intent(this, ShoppingActivity.class));
-			return true;
-		}
 
+		}
+		*/
 		return super.onOptionsItemSelected(item);
 	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		return new CursorLoader(this, GoGiveContentProvider.RECIPIENT_URI, 
-				new String[]{RecipientsView.COLUMN_ID, RecipientsView.COLUMN_NAME, RecipientsView.COLUMN_NOTES, RecipientsView.COLUMN_DONE, 
-				RecipientsView.COLUMN_SPEND, RecipientsView.COLUMN_PLANNED, RecipientsView.COLUMN_PURCHASED}, 
-				showEveryone ? null : "hidden IS NULL OR NOT hidden", 
-				null, RecipientsView.COLUMN_NAME);
+		return new CursorLoader(this, GoGiveContentProvider.STORES_URI,
+				new String[]{StoresTable.COLUMN_ID, StoresTable.COLUMN_NAME}, 
+				"_id IN (SELECT store FROM gifts_stores gs INNER JOIN gifts g ON g._id = gs.gift "+
+				"WHERE g.status in ('Planned', 'Purchased'))", 
+				null, StoresTable.COLUMN_NAME);
 	}
 
 	@Override
@@ -149,13 +136,14 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 
 }
 
-class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderManager.LoaderCallbacks<Cursor> {
+class ShoppingExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderManager.LoaderCallbacks<Cursor> {
     private Context mContext;
     private LoaderManager mManager;
 
-    public ExpandableListAdapter(
+    public ShoppingExpandableListAdapter(
             Context context, LoaderManager manager) {
-        super(context, null, R.layout.main_item, null, null, 
+        super(context, null, android.R.layout.simple_expandable_list_item_1, new String[]{StoresTable.COLUMN_NAME}, 
+        		new int[]{android.R.id.text1}, 
         		R.layout.gift_item, null, null);
         mContext  = context;
         mManager  = manager;
@@ -179,22 +167,14 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
         long idGroup = bundle.getLong("idGroup");
         return new CursorLoader(
                 mContext,
-                GoGiveContentProvider.GIFT_URI,
-				new String[]{GiftsTable.COLUMN_ID, GiftsTable.COLUMN_STATUS, 
-                		GiftsTable.COLUMN_NAME, GiftsTable.COLUMN_PRICE, 
-                		GiftsTable.COLUMN_NOTES}, 
-                GiftsTable.COLUMN_RECIPIENT + " = ?",
+                GoGiveContentProvider.GIFTS_STORES_URI,
+				new String[]{GiftsStoresView.COLUMN_ID, GiftsTable.COLUMN_STATUS, 
+                		GiftsStoresView.COLUMN_GIFT_NAME, GiftsTable.COLUMN_PRICE, 
+                		GiftsStoresView.COLUMN_GIFT_NOTES, GiftsStoresView.COLUMN_GIFT}, 
+               GiftsStoresView.COLUMN_STORE + " = ? AND status in ('"+Status.Purchased+"','"+
+                		Status.Planned+"')",
                 new String[]{String.valueOf(idGroup)},
-                "CASE "+GiftsTable.COLUMN_STATUS+
-                	" WHEN '"+Status.Purchased+"' THEN 0 " +
-                	" WHEN '"+Status.Planned  +"' THEN 1 " +
-                	" WHEN '"+Status.Idea     +"' THEN 2 " +
-                	" WHEN '"+Status.Given    +"' THEN 3 " +
-                	" WHEN '"+Status.Rejected +"' THEN 4 " +
-                "END, "+
-                "CASE WHEN "+GiftsTable.COLUMN_STATUS+" IN " +
-                		"('"+Status.Purchased+"','"+Status.Planned+"') THEN "+GiftsTable.COLUMN_NAME+
-        		    " ELSE "+GiftsTable.COLUMN_DATE+" END"
+                GiftsStoresView.COLUMN_STATUS
         );
     }
     @Override
@@ -220,48 +200,11 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
 			notes.setVisibility(View.VISIBLE);
 			notes.setText(notesStr);
 		}
-
-
-	}
-
-	@Override
-	protected void bindGroupView(View view, final Context context, final Cursor cursor,
-			boolean isExpanded) {
-		CheckBox rcptBox = (CheckBox)view.findViewById(R.id.recipient);
-		rcptBox.setText(cursor.getString(1));
-		rcptBox.setChecked(cursor.getInt(3) != 0);
-		TextView notes = (TextView)view.findViewById(R.id.recipient_notes);
-		String notesStr = cursor.getString(2);
-		if (TextUtils.isEmpty(notesStr)){
-			notes.setVisibility(View.GONE);
-		} else {
-			notes.setVisibility(View.VISIBLE);
-			notes.setText(notesStr);
-		}
-		((TextView)view.findViewById(R.id.total_spend)).setText(NumberFormat.getCurrencyInstance().format(cursor.getDouble(4)));
-		int planned = cursor.getInt(5);
-		int purchased = cursor.getInt(6);
-		((TextView)view.findViewById(R.id.summary)).setText("Planned: "+planned+", purchased: "+purchased);
 		
-		ImageButton create = (ImageButton)view.findViewById(R.id.create_new);
-		if (isExpanded){
-			create.setVisibility(View.VISIBLE);
-			final long recipient = cursor.getLong(0);
-			create.setOnClickListener(new OnClickListener(){
-				@Override
-				public void onClick(View v) {
-					context.startActivity(new Intent(context, GiftActivity.class)
-					                   .putExtra(GiftActivity.RECIPIENT_KEY, recipient));
-				}
-			});
-			
-		} else {
-			create.setVisibility(View.GONE);
-		}
+		view.setTag(Long.valueOf(cursor.getLong(5)));
 
-		
+
 	}
     
     
 }
-

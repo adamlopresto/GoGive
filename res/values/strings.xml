@@ -22,5 +22,6 @@
     <string name="choose_a_store">Choose a store</string>
     <string name="create_a_new_store">Create a new store</string>
     <string name="store_name">Store name</string>
+    <string name="title_activity_shopping">Shopping</string>
 
 </resources>
