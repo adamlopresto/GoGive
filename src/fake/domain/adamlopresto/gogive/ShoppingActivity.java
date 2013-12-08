@@ -2,18 +2,25 @@ package fake.domain.adamlopresto.gogive;
 
 import java.text.NumberFormat;
 
+import android.app.AlertDialog;
 import android.app.ExpandableListActivity;
 import android.app.LoaderManager;
 import android.content.Context;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
+import android.database.MatrixCursor;
+import android.database.MergeCursor;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ExpandableListView;
 import android.widget.SimpleCursorTreeAdapter;
 import android.widget.TextView;
@@ -38,29 +45,42 @@ public class ShoppingActivity extends ExpandableListActivity implements LoaderMa
 		
 		setListAdapter(adapter);
 		
-		/*
+		getActionBar().setDisplayHomeAsUpEnabled(true);
+		
 		getExpandableListView().setOnItemLongClickListener(new OnItemLongClickListener(){
 
 			@Override
 			public boolean onItemLongClick(AdapterView<?> parent, View view,
 					int position, long id) {
 
+				final long realId = ((Long)view.getTag()).longValue();
 				long packedPosition = getExpandableListView().getExpandableListPosition(position);
 				
-				if (ExpandableListView.getPackedPositionType(packedPosition) == ExpandableListView.PACKED_POSITION_TYPE_GROUP){
-//					Cursor o = (Cursor)getExpandableListAdapter().getGroup(ExpandableListView.getPackedPositionGroup(id));
+				if (ExpandableListView.getPackedPositionType(packedPosition) == ExpandableListView.PACKED_POSITION_TYPE_GROUP
+						&& realId != -2L){
 					
-					lastPosition = ExpandableListView.getPackedPositionGroup(packedPosition);
-
-					long recipientId = adapter.getGroupId(ExpandableListView.getPackedPositionGroup(packedPosition));
-					startActivity(new Intent(ShoppingActivity.this, RecipientActivity.class).putExtra(RecipientActivity.KEY, recipientId));
+					AlertDialog.Builder builder = new AlertDialog.Builder(ShoppingActivity.this)
+						.setTitle("Delete store")
+						.setMessage("Are you sure you want to delete this store? id is "+realId)
+						.setNegativeButton(android.R.string.cancel, null)
+						.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+							
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								getContentResolver().delete(GoGiveContentProvider.STORES_URI, 
+										"_id = ?", new String[]{String.valueOf(realId)});
+								adapter.setGroupCursor(null);
+								getLoaderManager().restartLoader(-1, null, ShoppingActivity.this);
+							}
+						});
+					builder.show();
+					
 
 					return true;
 				} 
 				return false;
 			}
 		});
-		*/
 		
 	}
 	
@@ -86,25 +106,23 @@ public class ShoppingActivity extends ExpandableListActivity implements LoaderMa
 		return true;
 	}
 
+	/*
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
+	*/
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		/*
 		switch(item.getItemId()){
-		case R.id.action_show:
-			showEveryone = !showEveryone;
-			item.setChecked(showEveryone);
-			getLoaderManager().restartLoader(-1, null, this);
+		case android.R.id.home:
+			finish();
 			return true;
 
 		}
-		*/
 		return super.onOptionsItemSelected(item);
 	}
 
@@ -119,7 +137,10 @@ public class ShoppingActivity extends ExpandableListActivity implements LoaderMa
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor c) {
-		adapter.setGroupCursor(c);
+		MatrixCursor lastStore = new MatrixCursor(new String[]{StoresTable.COLUMN_ID, StoresTable.COLUMN_NAME}, 1);
+		lastStore.addRow(new Object[]{-2L, "No store"});
+		MergeCursor mergeCursor = new MergeCursor(new Cursor[]{c, lastStore});
+		adapter.setGroupCursor(mergeCursor);
 
 		if (lastPosition != -1){
 			ExpandableListView lv = getExpandableListView();
@@ -144,7 +165,7 @@ class ShoppingExpandableListAdapter extends SimpleCursorTreeAdapter implements L
             Context context, LoaderManager manager) {
         super(context, null, android.R.layout.simple_expandable_list_item_1, new String[]{StoresTable.COLUMN_NAME}, 
         		new int[]{android.R.id.text1}, 
-        		R.layout.gift_item, null, null);
+        		R.layout.shopping_gift_item, null, null);
         mContext  = context;
         mManager  = manager;
     }
@@ -165,17 +186,34 @@ class ShoppingExpandableListAdapter extends SimpleCursorTreeAdapter implements L
     @Override
     public Loader<Cursor> onCreateLoader(int groupPos, Bundle bundle) {
         long idGroup = bundle.getLong("idGroup");
-        return new CursorLoader(
+        if (idGroup == -2L){
+        	return new CursorLoader(
                 mContext,
                 GoGiveContentProvider.GIFTS_STORES_URI,
 				new String[]{GiftsStoresView.COLUMN_ID, GiftsTable.COLUMN_STATUS, 
                 		GiftsStoresView.COLUMN_GIFT_NAME, GiftsTable.COLUMN_PRICE, 
-                		GiftsStoresView.COLUMN_GIFT_NOTES, GiftsStoresView.COLUMN_GIFT}, 
+                		GiftsStoresView.COLUMN_GIFT_NOTES, GiftsStoresView.COLUMN_GIFT, 
+                		GiftsStoresView.COLUMN_RECIPIENT_NAME}, 
+               GiftsStoresView.COLUMN_STORE + " IS NULL AND status in ('"+Status.Purchased+"','"+
+                		Status.Planned+"')",
+                null,
+                GiftsStoresView.COLUMN_STATUS
+	        );
+        } else {
+        	return new CursorLoader(
+                mContext,
+                GoGiveContentProvider.GIFTS_STORES_URI,
+				new String[]{GiftsStoresView.COLUMN_ID, GiftsTable.COLUMN_STATUS, 
+                		GiftsStoresView.COLUMN_GIFT_NAME, GiftsTable.COLUMN_PRICE, 
+                		GiftsStoresView.COLUMN_GIFT_NOTES, GiftsStoresView.COLUMN_GIFT, 
+                		GiftsStoresView.COLUMN_RECIPIENT_NAME}, 
                GiftsStoresView.COLUMN_STORE + " = ? AND status in ('"+Status.Purchased+"','"+
                 		Status.Planned+"')",
                 new String[]{String.valueOf(idGroup)},
                 GiftsStoresView.COLUMN_STATUS
-        );
+	        );
+        }
+
     }
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
@@ -185,25 +223,49 @@ class ShoppingExpandableListAdapter extends SimpleCursorTreeAdapter implements L
     public void onLoaderReset(Loader<Cursor> loader) {
     }
 
+	/* (non-Javadoc)
+	 * @see android.widget.SimpleCursorTreeAdapter#bindGroupView(android.view.View, android.content.Context, android.database.Cursor, boolean)
+	 */
+	@Override
+	protected void bindGroupView(View view, Context context, Cursor cursor,
+			boolean isExpanded) {
+
+		view.setTag(Long.valueOf(cursor.getLong(0)));
+		super.bindGroupView(view, context, cursor, isExpanded);
+	}
+
 	@Override
 	protected void bindChildView(View view, Context context, Cursor cursor,
 			boolean isLastChild) {
 		
-		((TextView)view.findViewById(R.id.status)).setText(cursor.getString(1));
-		((TextView)view.findViewById(R.id.name)).setText(cursor.getString(2));
-		((TextView)view.findViewById(R.id.price)).setText(NumberFormat.getCurrencyInstance().format(cursor.getDouble(3)));
-		TextView notes = ((TextView)view.findViewById(R.id.notes));
-		String notesStr = cursor.getString(4);
-		if (TextUtils.isEmpty(notesStr)){
-			notes.setVisibility(View.GONE);
-		} else {
-			notes.setVisibility(View.VISIBLE);
-			notes.setText(notesStr);
-		}
+		DatabaseUtils.dumpCurrentRow(cursor);
+		
+		boolean strikethru = Status.Purchased.toString()
+				.equals(cursor.getString(
+						cursor.getColumnIndexOrThrow(GiftsStoresView.COLUMN_STATUS)));
+
+		updateText(view, R.id.recipient, cursor.getString(6), strikethru);
+		updateText(view, R.id.name,      cursor.getString(2), strikethru);
+		updateText(view, R.id.price, NumberFormat.getCurrencyInstance().format(cursor.getDouble(3)), 
+				strikethru);
+		updateText(view, R.id.notes,     cursor.getString(4), strikethru);
 		
 		view.setTag(Long.valueOf(cursor.getLong(5)));
-
-
+	}
+	
+	private void updateText(View parent, int resource, String text, boolean strikethru){
+		TextView tv = ((TextView)parent.findViewById(resource));
+		if (TextUtils.isEmpty(text))
+			tv.setVisibility(View.GONE);
+		else {
+			tv.setVisibility(View.VISIBLE);
+			tv.setText(text);
+			if (strikethru)
+				tv.setPaintFlags(tv.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+			else
+				tv.setPaintFlags(tv.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
+		}
+		
 	}
     
     

@@ -15,27 +15,28 @@
         android:text="Planned" />
 
     <TextView
-        android:id="@+id/name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/status"
-        android:text="Stuff" />
-
-    <TextView
         android:id="@+id/price"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/name"
         android:layout_alignParentRight="true"
         android:gravity="right"
         android:text="$15" />
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/recipient"
+        android:layout_toLeftOf="@id/price"
+        android:text="Stuff" />
+
 
     <TextView
         android:id="@+id/notes"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@id/name"
-        android:layout_below="@+id/status"
+        android:layout_below="@+id/name"
         android:text="TextView" />
 
 </RelativeLayout>

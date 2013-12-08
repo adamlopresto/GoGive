@@ -97,11 +97,11 @@ public class GoGiveContentProvider extends ContentProvider {
 		case GIFTS:
 			queryBuilder.setTables(GiftsTable.TABLE);
 			break;
-		case GIFTS_STORES:
-			queryBuilder.setTables(GiftsStoresView.VIEW);
-			break;
 		case STORES:
 			queryBuilder.setTables(StoresTable.TABLE);
+			break;
+		case GIFTS_STORES: 
+			queryBuilder.setTables(GiftsStoresView.VIEW);
 			break;
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
@@ -112,7 +112,6 @@ public class GoGiveContentProvider extends ContentProvider {
 				selectionArgs, null, null, sortOrder);
 		// Make sure that potential listeners are getting notified
 		cursor.setNotificationUri(getContext().getContentResolver(), uri);
-	
 		return cursor;
 	}
 

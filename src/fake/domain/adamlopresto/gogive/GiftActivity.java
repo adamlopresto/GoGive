@@ -103,6 +103,10 @@ public class GiftActivity extends ListActivity implements
 	@Override
 	protected void onPause() {
 		super.onPause();
+		save();
+	}
+	
+	private void save() {
 		if (!deleting) {
 			ContentValues cv = new ContentValues(6);
 			cv.put(GiftsTable.COLUMN_RECIPIENT, recipient);
@@ -155,6 +159,7 @@ public class GiftActivity extends ListActivity implements
 		long tmpId;
 		if ((tmpId = b.getLong(GIFT_KEY, -1L)) != -1L) {
 			id = tmpId;
+			Log.e("GoDo", "Opening item "+id);
 			Cursor c = getContentResolver().query(
 					GoGiveContentProvider.GIFT_URI,
 					new String[] { GiftsTable.COLUMN_NAME,
@@ -239,7 +244,8 @@ public class GiftActivity extends ListActivity implements
 					GoGiveContentProvider.GIFTS_STORES_URI, new String[] {
 							GiftsStoresView.COLUMN_ID,
 							GiftsStoresView.COLUMN_STORE_NAME },
-					GiftsStoresView.COLUMN_GIFT + "=?",
+					GiftsStoresView.COLUMN_GIFT + "=? AND "+GiftsStoresView.COLUMN_STORE_NAME
+					+" IS NOT NULL",
 					new String[] { String.valueOf(this.id) },
 					GiftsStoresView.COLUMN_STORE_NAME);
 		case LOADER_STORES:
@@ -259,6 +265,7 @@ public class GiftActivity extends ListActivity implements
 			adapter.swapCursor(cursor);
 			return;
 		case LOADER_STORES:
+			save();
 			final AlertDialog.Builder builder = new AlertDialog.Builder(GiftActivity.this);
 			builder.setCursor(cursor, new DialogInterface.OnClickListener() {
 				@Override
@@ -268,7 +275,8 @@ public class GiftActivity extends ListActivity implements
 					values.put(GiftsStoresTable.COLUMN_GIFT, GiftActivity.this.id);
 					values.put(GiftsStoresTable.COLUMN_STORE, cursor.getLong(0));
 					try {
-					getContentResolver().insert(GoGiveContentProvider.GIFTS_STORES_URI, values);
+						getContentResolver().insert(GoGiveContentProvider.GIFTS_STORES_URI, values);
+						getLoaderManager().restartLoader(LOADER_GIFTS_STORES, null, GiftActivity.this);
 					} catch (SQLiteConstraintException ignored){
 						//NOOP
 					}
@@ -296,6 +304,7 @@ public class GiftActivity extends ListActivity implements
 								values.put(GiftsStoresTable.COLUMN_STORE, storeId);
 								values.put(GiftsStoresTable.COLUMN_GIFT, id);
 								getContentResolver().insert(GoGiveContentProvider.GIFTS_STORES_URI, values);
+								getLoaderManager().restartLoader(LOADER_GIFTS_STORES, null, GiftActivity.this);
 								Toast.makeText(GiftActivity.this, "Added to store", Toast.LENGTH_SHORT).show();
 							} catch (Exception e){
 								Toast.makeText(GiftActivity.this, "Failed to create store: "+e, Toast.LENGTH_LONG).show();
