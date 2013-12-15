@@ -2,6 +2,7 @@ package fake.domain.adamlopresto.gogive;
 
 import java.text.NumberFormat;
 
+import android.app.AlertDialog;
 import android.app.ExpandableListActivity;
 import android.app.LoaderManager;
 import android.content.Context;
@@ -22,6 +23,7 @@ import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.SimpleCursorTreeAdapter;
 import android.widget.TextView;
+import fake.domain.adamlopresto.gogive.db.DatabaseHelper;
 import fake.domain.adamlopresto.gogive.db.GiftsTable;
 import fake.domain.adamlopresto.gogive.db.RecipientsView;
 
@@ -116,6 +118,28 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 		case R.id.action_shop:
 			startActivity(new Intent(this, ShoppingActivity.class));
 			return true;
+		case R.id.action_totals:{
+			Cursor cursor = DatabaseHelper.getInstance(this).getReadableDatabase()
+					.rawQuery("select sum(case when status='Planned' then price end) as planned, " +
+							"sum(case when status='Purchased' then price end) as purchased " +
+							"from gifts;", null);
+			
+			cursor.moveToFirst();
+			double purchased = cursor.getDouble(0);
+			double planned = cursor.getDouble(1);
+			double total = purchased+planned;
+			cursor.close();
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			View layout = getLayoutInflater().inflate(R.layout.dialog_sum, null);
+			builder.setView(layout);
+			((TextView)layout.findViewById(R.id.purchased)).setText(NumberFormat.getCurrencyInstance().format(purchased));
+			((TextView)layout.findViewById(R.id.planned)).setText(NumberFormat.getCurrencyInstance().format(planned));
+			((TextView)layout.findViewById(R.id.total)).setText(NumberFormat.getCurrencyInstance().format(total));
+			builder.setTitle("Totals");
+			builder.setPositiveButton(android.R.string.ok, null);
+			builder.show();
+		}
 		}
 
 		return super.onOptionsItemSelected(item);

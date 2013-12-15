@@ -11,9 +11,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.database.MatrixCursor;
-import android.database.MergeCursor;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -26,7 +23,6 @@ import android.widget.SimpleCursorTreeAdapter;
 import android.widget.TextView;
 import fake.domain.adamlopresto.gogive.db.GiftsStoresView;
 import fake.domain.adamlopresto.gogive.db.GiftsTable;
-import fake.domain.adamlopresto.gogive.db.StoresTable;
 
 public class ShoppingActivity extends ExpandableListActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 	
@@ -128,19 +124,20 @@ public class ShoppingActivity extends ExpandableListActivity implements LoaderMa
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		return new CursorLoader(this, GoGiveContentProvider.STORES_URI,
-				new String[]{StoresTable.COLUMN_ID, StoresTable.COLUMN_NAME}, 
-				"_id IN (SELECT store FROM gifts_stores gs INNER JOIN gifts g ON g._id = gs.gift "+
-				"WHERE g.status in ('Planned', 'Purchased'))", 
-				null, StoresTable.COLUMN_NAME);
+		return new CursorLoader(this, GoGiveContentProvider.SHOPPING_URI,
+				new String[]{"_id", "store_name", "purchased", "planned"}, 
+				null, null, "store_name is null, store_name");
 	}
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor c) {
+		/*
 		MatrixCursor lastStore = new MatrixCursor(new String[]{StoresTable.COLUMN_ID, StoresTable.COLUMN_NAME}, 1);
 		lastStore.addRow(new Object[]{-2L, "No store"});
 		MergeCursor mergeCursor = new MergeCursor(new Cursor[]{c, lastStore});
 		adapter.setGroupCursor(mergeCursor);
+		*/
+		adapter.setGroupCursor(c);
 
 		if (lastPosition != -1){
 			ExpandableListView lv = getExpandableListView();
@@ -163,7 +160,7 @@ class ShoppingExpandableListAdapter extends SimpleCursorTreeAdapter implements L
 
     public ShoppingExpandableListAdapter(
             Context context, LoaderManager manager) {
-        super(context, null, android.R.layout.simple_expandable_list_item_1, new String[]{StoresTable.COLUMN_NAME}, 
+        super(context, null, android.R.layout.simple_expandable_list_item_1, new String[]{"store_name"}, 
         		new int[]{android.R.id.text1}, 
         		R.layout.shopping_gift_item, null, null);
         mContext  = context;
@@ -171,7 +168,10 @@ class ShoppingExpandableListAdapter extends SimpleCursorTreeAdapter implements L
     }
     @Override
     protected Cursor getChildrenCursor(Cursor groupCursor) {
-        final long idGroup = groupCursor.getLong(groupCursor.getColumnIndex("_id"));
+    	int col = groupCursor.getColumnIndex("_id");
+    	final long idGroup = groupCursor.isNull(col) 
+    			? -2L
+    			: groupCursor.getLong(col);
         Bundle bundle = new Bundle();
         bundle.putLong("idGroup", idGroup);
         int groupPos = groupCursor.getPosition();
@@ -229,16 +229,25 @@ class ShoppingExpandableListAdapter extends SimpleCursorTreeAdapter implements L
 	@Override
 	protected void bindGroupView(View view, Context context, Cursor cursor,
 			boolean isExpanded) {
+		
+		super.bindGroupView(view, context, cursor, isExpanded);
 
 		view.setTag(Long.valueOf(cursor.getLong(0)));
-		super.bindGroupView(view, context, cursor, isExpanded);
+		TextView tv = (TextView)view.findViewById(android.R.id.text1);
+		if (cursor.getInt(cursor.getColumnIndexOrThrow("planned")) > 0)
+			tv.setPaintFlags(tv.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
+		else
+			tv.setPaintFlags(tv.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+		
+		if (cursor.isNull(cursor.getColumnIndexOrThrow("store_name"))){
+			tv.setText("No store");
+		}
+
 	}
 
 	@Override
 	protected void bindChildView(View view, Context context, Cursor cursor,
 			boolean isLastChild) {
-		
-		DatabaseUtils.dumpCurrentRow(cursor);
 		
 		boolean strikethru = Status.Purchased.toString()
 				.equals(cursor.getString(

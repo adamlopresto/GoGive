@@ -30,6 +30,7 @@ public class GoGiveContentProvider extends ContentProvider {
 	private static final int GIFTS_STORES_ID = 5;
 	private static final int STORES = 6;
 	private static final int STORES_ID = 7;
+	private static final int SHOPPING = 8;
 	
 
 	public static final String AUTHORITY = "fake.domain.adamlopresto.gogive.contentprovider";
@@ -44,6 +45,8 @@ public class GoGiveContentProvider extends ContentProvider {
 	public static final Uri GIFTS_STORES_URI = Uri.withAppendedPath(BASE, GIFTS_STORES_BASE_PATH);
 	private static final String STORES_BASE_PATH = "stores";
 	public static final Uri STORES_URI = Uri.withAppendedPath(BASE, STORES_BASE_PATH);
+	private static final String SHOPPING_BASE_PATH = "shopping";
+	public static final Uri SHOPPING_URI = Uri.withAppendedPath(BASE, SHOPPING_BASE_PATH);
 
 	
 	/*
@@ -65,6 +68,7 @@ public class GoGiveContentProvider extends ContentProvider {
 		sURIMatcher.addURI(AUTHORITY, GIFTS_STORES_BASE_PATH+"/#", GIFTS_STORES_ID);
 		sURIMatcher.addURI(AUTHORITY, STORES_BASE_PATH, STORES);
 		sURIMatcher.addURI(AUTHORITY, STORES_BASE_PATH+"/#", STORES_ID);
+		sURIMatcher.addURI(AUTHORITY, SHOPPING_BASE_PATH, SHOPPING);
 	}
 
 	@Override
@@ -93,16 +97,32 @@ public class GoGiveContentProvider extends ContentProvider {
 		switch (uriType) {
 		case RECIPIENTS:
 			queryBuilder.setTables(RecipientsView.VIEW);
+			uri=RECIPIENT_URI;
 			break;
 		case GIFTS:
 			queryBuilder.setTables(GiftsTable.TABLE);
+			uri=GIFT_URI;
 			break;
 		case STORES:
 			queryBuilder.setTables(StoresTable.TABLE);
+			uri=STORES_URI;
 			break;
 		case GIFTS_STORES: 
 			queryBuilder.setTables(GiftsStoresView.VIEW);
+			uri=GIFTS_STORES_URI;
 			break;
+		case SHOPPING: {
+			queryBuilder.setTables(GiftsStoresView.VIEW);
+			Cursor cursor = queryBuilder.query(helper.getReadableDatabase(), 
+					new String[]{"store as _id", "store_name", 
+					"count(case when status='Purchased' then gift end) as purchased",
+					"count(case when status='Planned' then gift end) as planned",
+					}, 
+					selection, selectionArgs, 
+					"store, store_name", "purchased > 0 OR planned > 0", sortOrder);
+			cursor.setNotificationUri(getContext().getContentResolver(), GIFTS_STORES_URI);
+			return cursor;
+		}
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
 		}
@@ -133,10 +153,13 @@ public class GoGiveContentProvider extends ContentProvider {
 		case RECIPIENTS:
 			rowsUpdated = sqlDB.delete(RecipientsTable.TABLE, selection, selectionArgs);
 			getContext().getContentResolver().notifyChange(RECIPIENT_URI, null);
+			getContext().getContentResolver().notifyChange(GIFT_URI, null);
+			getContext().getContentResolver().notifyChange(GIFTS_STORES_URI, null);
 			return rowsUpdated;
 		case GIFTS:
 			rowsUpdated = sqlDB.delete(GiftsTable.TABLE, selection, selectionArgs);
 			getContext().getContentResolver().notifyChange(GIFT_URI, null);
+			getContext().getContentResolver().notifyChange(GIFTS_STORES_URI, null);
 			return rowsUpdated;
 		case GIFTS_STORES:
 			rowsUpdated = sqlDB.delete(GiftsStoresTable.TABLE, selection, selectionArgs);
@@ -145,6 +168,7 @@ public class GoGiveContentProvider extends ContentProvider {
 		case STORES:
 			rowsUpdated = sqlDB.delete(StoresTable.TABLE, selection, selectionArgs);
 			getContext().getContentResolver().notifyChange(STORES_URI, null);
+			getContext().getContentResolver().notifyChange(GIFTS_STORES_URI, null);
 			return rowsUpdated;
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
@@ -201,10 +225,13 @@ public class GoGiveContentProvider extends ContentProvider {
 		case RECIPIENTS:
 			rowsUpdated = sqlDB.update(RecipientsTable.TABLE, values, selection, selectionArgs);
 			getContext().getContentResolver().notifyChange(RECIPIENT_URI, null);
+			getContext().getContentResolver().notifyChange(GIFT_URI, null);
+			getContext().getContentResolver().notifyChange(GIFTS_STORES_URI, null);
 			return rowsUpdated;
 		case GIFTS:
 			rowsUpdated = sqlDB.update(GiftsTable.TABLE, values, selection, selectionArgs);
 			getContext().getContentResolver().notifyChange(GIFT_URI, null);
+			getContext().getContentResolver().notifyChange(GIFTS_STORES_URI, null);
 			return rowsUpdated;
 		case GIFTS_STORES:
 			rowsUpdated = sqlDB.update(GiftsStoresTable.TABLE, values, selection, selectionArgs);
@@ -213,6 +240,7 @@ public class GoGiveContentProvider extends ContentProvider {
 		case STORES:
 			rowsUpdated = sqlDB.update(StoresTable.TABLE, values, selection, selectionArgs);
 			getContext().getContentResolver().notifyChange(STORES_URI, null);
+			getContext().getContentResolver().notifyChange(GIFTS_STORES_URI, null);
 			return rowsUpdated;
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
