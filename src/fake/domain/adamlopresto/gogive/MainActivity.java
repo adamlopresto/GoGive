@@ -125,8 +125,8 @@ public class MainActivity extends ExpandableListActivity implements LoaderManage
 							"from gifts;", null);
 			
 			cursor.moveToFirst();
-			double purchased = cursor.getDouble(0);
-			double planned = cursor.getDouble(1);
+			double planned = cursor.getDouble(0);
+			double purchased = cursor.getDouble(1);
 			double total = purchased+planned;
 			cursor.close();
 
