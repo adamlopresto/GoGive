@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingLeft="?android:attr/expandableListPreferredItemPaddingLeft"
+    android:paddingRight="8sp"
+    android:paddingTop="8sp"
+    android:paddingBottom="8sp"
+    android:descendantFocusability="blocksDescendants" 
+    >
+
+    <CheckBox
+        android:id="@+id/recipient"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:focusable="false"
+        android:clickable="false"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/total_spend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="right"
+        android:layout_toRightOf="@id/recipient"
+        android:gravity="right"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/recipient_notes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/recipient"
+        />
+
+    <TextView
+        android:id="@+id/summary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/recipient_notes"
+        />
+
+    <ImageButton
+        android:id="@+id/create_new"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/total_spend"
+        android:layout_alignParentRight="true"
+        android:contentDescription="@string/new_gift_idea"
+        android:src="@drawable/ic_action_new" />
+
+</RelativeLayout>
