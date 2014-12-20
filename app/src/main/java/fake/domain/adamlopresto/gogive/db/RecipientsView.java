@@ -26,25 +26,22 @@ public class RecipientsView {
 				+ "r."+COLUMN_NOTES  + ", "
 				+ "r."+COLUMN_DONE   + ", "
 				+ "r."+COLUMN_HIDDEN + ", "
-				+ "COUNT(g1."+GiftsTable.COLUMN_ID+") as planned, "
-				+ "COUNT(g2."+GiftsTable.COLUMN_ID+") as purchased, "
-				+ "COALESCE(SUM(g1."+GiftsTable.COLUMN_PRICE+"),0)+COALESCE(SUM(g2."+GiftsTable.COLUMN_PRICE+"),0) as spend "
+				+ "(SELECT COUNT(*) FROM gifts WHERE recipient = r._id AND status='Planned') as planned, "
+                + "(SELECT COUNT(*) FROM gifts WHERE recipient = r._id AND status='Purchased') as purchased, "
+				+ "COALESCE(" +
+                        "(SELECT SUM("+GiftsTable.COLUMN_PRICE+") " +
+                        "FROM gifts " +
+                        "WHERE recipient = r._id " +
+                        "AND status in ('Planned', 'Purchased')" +
+                        "),0) as spend "
 				+ "FROM " + RecipientsTable.TABLE + " AS r " 
-				+ "LEFT OUTER JOIN " + GiftsTable.TABLE + " AS g1 "
-				+ "ON r."+RecipientsTable.COLUMN_ID +"= g1."+GiftsTable.COLUMN_RECIPIENT
-				+ " AND g1."+GiftsTable.COLUMN_STATUS+"='"+Status.Planned.toString()+"' "
-				+ "LEFT OUTER JOIN " + GiftsTable.TABLE + " AS g2 "
-				+ "ON r."+RecipientsTable.COLUMN_ID +"= g2."+GiftsTable.COLUMN_RECIPIENT
-				+ " AND g2."+GiftsTable.COLUMN_STATUS+"='"+Status.Purchased.toString()+"' "
-				+ "GROUP BY "
-				+ "r."+COLUMN_ID     + ", "
-				+ "r."+COLUMN_NAME   + ", "
-				+ "r."+COLUMN_NOTES  + ", "
-				+ "r."+COLUMN_DONE   + ", "
-				+ "r."+COLUMN_HIDDEN
 				);
 	}
 
 	public static void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
+        if (oldVersion < 4){
+            db.execSQL("DROP VIEW "+VIEW);
+            onCreate(db);
+        }
 	}
 }
