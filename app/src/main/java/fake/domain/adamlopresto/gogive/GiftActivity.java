@@ -2,6 +2,7 @@ package fake.domain.adamlopresto.gogive;
 
 import java.util.Date;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.LoaderManager;
@@ -25,6 +26,11 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
+
 import fake.domain.adamlopresto.gogive.db.DatabaseHelper;
 import fake.domain.adamlopresto.gogive.db.GiftsStoresTable;
 import fake.domain.adamlopresto.gogive.db.GiftsStoresView;
@@ -50,6 +56,11 @@ public class GiftActivity extends ListActivity implements
 
 	private static final int LOADER_GIFTS_STORES = 1;
 	private static final int LOADER_STORES = 2;
+	/**
+	 * ATTENTION: This was auto-generated to implement the App Indexing API.
+	 * See https://g.co/AppIndexing/AndroidStudio for more information.
+	 */
+	private GoogleApiClient client;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -82,15 +93,15 @@ public class GiftActivity extends ListActivity implements
 		// "Amazon"}));
 		adapter = new SimpleCursorAdapter(this,
 				android.R.layout.simple_list_item_1, null,
-				new String[] { GiftsStoresView.COLUMN_STORE_NAME },
-				new int[] { android.R.id.text1 }, 0);
+				new String[]{GiftsStoresView.COLUMN_STORE_NAME},
+				new int[]{android.R.id.text1}, 0);
 		setListAdapter(adapter);
 
-		getListView().setOnItemLongClickListener(new OnItemLongClickListener(){
+		getListView().setOnItemLongClickListener(new OnItemLongClickListener() {
 
 			@Override
 			public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-					int arg2, long giftStoreId) {
+										   int arg2, long giftStoreId) {
 				getContentResolver().delete(GoGiveContentProvider.GIFTS_STORES_URI, "_id = ?", new String[]{String.valueOf(giftStoreId)});
 				return true;
 			}
@@ -98,6 +109,9 @@ public class GiftActivity extends ListActivity implements
 
 		if (!extractFromBundle(savedInstanceState))
 			extractFromBundle(getIntent().getExtras());
+		// ATTENTION: This was auto-generated to implement the App Indexing API.
+		// See https://g.co/AppIndexing/AndroidStudio for more information.
+		client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 	}
 
 	@Override
@@ -105,7 +119,7 @@ public class GiftActivity extends ListActivity implements
 		super.onPause();
 		save();
 	}
-	
+
 	private void save() {
 		if (!deleting) {
 			ContentValues cv = new ContentValues(6);
@@ -127,7 +141,7 @@ public class GiftActivity extends ListActivity implements
 				// update
 				getContentResolver().update(GoGiveContentProvider.GIFT_URI, cv,
 						GiftsTable.COLUMN_ID + "=?",
-						new String[] { String.valueOf(id) });
+						new String[]{String.valueOf(id)});
 			}
 		}
 	}
@@ -159,14 +173,14 @@ public class GiftActivity extends ListActivity implements
 		long tmpId;
 		if ((tmpId = b.getLong(GIFT_KEY, -1L)) != -1L) {
 			id = tmpId;
-			Log.e("GoDo", "Opening item "+id);
+			Log.e("GoDo", "Opening item " + id);
 			Cursor c = getContentResolver().query(
 					GoGiveContentProvider.GIFT_URI,
-					new String[] { GiftsTable.COLUMN_NAME,
+					new String[]{GiftsTable.COLUMN_NAME,
 							GiftsTable.COLUMN_NOTES, GiftsTable.COLUMN_PRICE,
 							GiftsTable.COLUMN_RECIPIENT,
-							GiftsTable.COLUMN_STATUS }, "_id = ?",
-					new String[] { String.valueOf(id) }, null);
+							GiftsTable.COLUMN_STATUS}, "_id = ?",
+					new String[]{String.valueOf(id)}, null);
 			c.moveToFirst();
 
 			name.setText(c.getString(0));
@@ -184,7 +198,7 @@ public class GiftActivity extends ListActivity implements
 	}
 
 	/**
-	 * Set up the {@link android.app.ActionBar}.
+	 * Set up the {@link ActionBar}.
 	 */
 	private void setupActionBar() {
 
@@ -202,36 +216,36 @@ public class GiftActivity extends ListActivity implements
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case android.R.id.home:
-			// This ID represents the Home or Up button. In the case of this
-			// activity, the Up button is shown. Use NavUtils to allow users
-			// to navigate up one level in the application structure. For
-			// more details, see the Navigation pattern on Android Design:
-			//
-			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
-			//
-			// NavUtils.navigateUpFromSameTask(this);
-			finish();
-			return true;
-		case R.id.delete:
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle(R.string.delete);
-			builder.setMessage(R.string.confirm_delete);
-			builder.setPositiveButton(R.string.delete,
-					new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							deleting = true;
-							getContentResolver().delete(
-									GoGiveContentProvider.GIFT_URI,
-									GiftsTable.COLUMN_ID + "=?",
-									new String[] { String.valueOf(id) });
-							finish();
-						}
-					});
-			builder.setNegativeButton(android.R.string.cancel, null);
-			builder.show();
-			return true;
+			case android.R.id.home:
+				// This ID represents the Home or Up button. In the case of this
+				// activity, the Up button is shown. Use NavUtils to allow users
+				// to navigate up one level in the application structure. For
+				// more details, see the Navigation pattern on Android Design:
+				//
+				// http://developer.android.com/design/patterns/navigation.html#up-vs-back
+				//
+				// NavUtils.navigateUpFromSameTask(this);
+				finish();
+				return true;
+			case R.id.delete:
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle(R.string.delete);
+				builder.setMessage(R.string.confirm_delete);
+				builder.setPositiveButton(R.string.delete,
+						new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								deleting = true;
+								getContentResolver().delete(
+										GoGiveContentProvider.GIFT_URI,
+										GiftsTable.COLUMN_ID + "=?",
+										new String[]{String.valueOf(id)});
+								finish();
+							}
+						});
+				builder.setNegativeButton(android.R.string.cancel, null);
+				builder.show();
+				return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -239,96 +253,135 @@ public class GiftActivity extends ListActivity implements
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 		switch (id) {
-		case LOADER_GIFTS_STORES:
-			return new CursorLoader(this,
-					GoGiveContentProvider.GIFTS_STORES_URI, new String[] {
-							GiftsStoresView.COLUMN_ID,
-							GiftsStoresView.COLUMN_STORE_NAME },
-					GiftsStoresView.COLUMN_GIFT + "=? AND "+GiftsStoresView.COLUMN_STORE_NAME
-					+" IS NOT NULL",
-					new String[] { String.valueOf(this.id) },
-					GiftsStoresView.COLUMN_STORE_NAME);
-		case LOADER_STORES:
-			return new CursorLoader(this, GoGiveContentProvider.STORES_URI,
-					new String[] { StoresTable.COLUMN_ID,
-							StoresTable.COLUMN_NAME }, null, null,
-					StoresTable.COLUMN_NAME);
-		default:
-			return null;
+			case LOADER_GIFTS_STORES:
+				return new CursorLoader(this,
+						GoGiveContentProvider.GIFTS_STORES_URI, new String[]{
+						GiftsStoresView.COLUMN_ID,
+						GiftsStoresView.COLUMN_STORE_NAME},
+						GiftsStoresView.COLUMN_GIFT + "=? AND " + GiftsStoresView.COLUMN_STORE_NAME
+								+ " IS NOT NULL",
+						new String[]{String.valueOf(this.id)},
+						GiftsStoresView.COLUMN_STORE_NAME);
+			case LOADER_STORES:
+				return new CursorLoader(this, GoGiveContentProvider.STORES_URI,
+						new String[]{StoresTable.COLUMN_ID,
+								StoresTable.COLUMN_NAME}, null, null,
+						StoresTable.COLUMN_NAME);
+			default:
+				return null;
 		}
 	}
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, final Cursor cursor) {
-		switch (loader.getId()){
-		case LOADER_GIFTS_STORES:
-			adapter.swapCursor(cursor);
-			return;
-		case LOADER_STORES:
-			save();
-			final AlertDialog.Builder builder = new AlertDialog.Builder(GiftActivity.this);
-			builder.setCursor(cursor, new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					cursor.moveToPosition(which);
-					ContentValues values = new ContentValues(2);
-					values.put(GiftsStoresTable.COLUMN_GIFT, GiftActivity.this.id);
-					values.put(GiftsStoresTable.COLUMN_STORE, cursor.getLong(0));
-					try {
-						getContentResolver().insert(GoGiveContentProvider.GIFTS_STORES_URI, values);
-						getLoaderManager().restartLoader(LOADER_GIFTS_STORES, null, GiftActivity.this);
-					} catch (SQLiteConstraintException ignored){
-						//NOOP
-					}
-					cursor.close();
-				}
-			}, StoresTable.COLUMN_NAME);
-			builder.setTitle(R.string.choose_a_store);
-			builder.setNegativeButton(android.R.string.cancel, null);
-			builder.setNeutralButton(R.string.create_a_new_store, new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(final DialogInterface dialog, int which) {
-					AlertDialog.Builder innerBuilder = new AlertDialog.Builder(GiftActivity.this);
-					final TextView newStoreName = (TextView)getLayoutInflater().inflate(R.layout.new_store_dialog, null);
-					innerBuilder.setView(newStoreName);
-					innerBuilder.setPositiveButton("Create", new DialogInterface.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface innerDialog, int which) {
-							String name = newStoreName.getText().toString();
-							ContentValues values = new ContentValues(2);
-							values.put(StoresTable.COLUMN_NAME, name);
-							try {
-								Uri newStore = getContentResolver().insert(GoGiveContentProvider.STORES_URI, values);
-								long storeId = Long.parseLong(newStore.getLastPathSegment());
-								values.clear();
-								values.put(GiftsStoresTable.COLUMN_STORE, storeId);
-								values.put(GiftsStoresTable.COLUMN_GIFT, id);
-								getContentResolver().insert(GoGiveContentProvider.GIFTS_STORES_URI, values);
-								getLoaderManager().restartLoader(LOADER_GIFTS_STORES, null, GiftActivity.this);
-								Toast.makeText(GiftActivity.this, "Added to store", Toast.LENGTH_SHORT).show();
-							} catch (Exception e){
-								Toast.makeText(GiftActivity.this, "Failed to create store: "+e, Toast.LENGTH_LONG).show();
-								Log.e("GoGive", "Failed to create store: "+e);
-							}
-							dialog.dismiss();
+		switch (loader.getId()) {
+			case LOADER_GIFTS_STORES:
+				adapter.swapCursor(cursor);
+				return;
+			case LOADER_STORES:
+				save();
+				final AlertDialog.Builder builder = new AlertDialog.Builder(GiftActivity.this);
+				builder.setCursor(cursor, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						cursor.moveToPosition(which);
+						ContentValues values = new ContentValues(2);
+						values.put(GiftsStoresTable.COLUMN_GIFT, GiftActivity.this.id);
+						values.put(GiftsStoresTable.COLUMN_STORE, cursor.getLong(0));
+						try {
+							getContentResolver().insert(GoGiveContentProvider.GIFTS_STORES_URI, values);
+							getLoaderManager().restartLoader(LOADER_GIFTS_STORES, null, GiftActivity.this);
+						} catch (SQLiteConstraintException ignored) {
+							//NOOP
 						}
-					});
-					innerBuilder.setNegativeButton(android.R.string.cancel, null);
-					innerBuilder.show();
-				}
-			});
-			builder.show();
+						cursor.close();
+					}
+				}, StoresTable.COLUMN_NAME);
+				builder.setTitle(R.string.choose_a_store);
+				builder.setNegativeButton(android.R.string.cancel, null);
+				builder.setNeutralButton(R.string.create_a_new_store, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(final DialogInterface dialog, int which) {
+						AlertDialog.Builder innerBuilder = new AlertDialog.Builder(GiftActivity.this);
+						final TextView newStoreName = (TextView) getLayoutInflater().inflate(R.layout.new_store_dialog, null);
+						innerBuilder.setView(newStoreName);
+						innerBuilder.setPositiveButton("Create", new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface innerDialog, int which) {
+								String name = newStoreName.getText().toString();
+								ContentValues values = new ContentValues(2);
+								values.put(StoresTable.COLUMN_NAME, name);
+								try {
+									Uri newStore = getContentResolver().insert(GoGiveContentProvider.STORES_URI, values);
+									long storeId = Long.parseLong(newStore.getLastPathSegment());
+									values.clear();
+									values.put(GiftsStoresTable.COLUMN_STORE, storeId);
+									values.put(GiftsStoresTable.COLUMN_GIFT, id);
+									getContentResolver().insert(GoGiveContentProvider.GIFTS_STORES_URI, values);
+									getLoaderManager().restartLoader(LOADER_GIFTS_STORES, null, GiftActivity.this);
+									Toast.makeText(GiftActivity.this, "Added to store", Toast.LENGTH_SHORT).show();
+								} catch (Exception e) {
+									Toast.makeText(GiftActivity.this, "Failed to create store: " + e, Toast.LENGTH_LONG).show();
+									Log.e("GoGive", "Failed to create store: " + e);
+								}
+								dialog.dismiss();
+							}
+						});
+						innerBuilder.setNegativeButton(android.R.string.cancel, null);
+						innerBuilder.show();
+					}
+				});
+				builder.show();
 		}
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
 		switch (loader.getId()) {
-		case LOADER_GIFTS_STORES:
-			adapter.swapCursor(null);
-		default:
-			// NOOP
+			case LOADER_GIFTS_STORES:
+				adapter.swapCursor(null);
+			default:
+				// NOOP
 		}
 	}
 
+	@Override
+	public void onStart() {
+		super.onStart();
+
+		// ATTENTION: This was auto-generated to implement the App Indexing API.
+		// See https://g.co/AppIndexing/AndroidStudio for more information.
+		client.connect();
+		Action viewAction = Action.newAction(
+				Action.TYPE_VIEW, // TODO: choose an action type.
+				"Gift Page", // TODO: Define a title for the content shown.
+				// TODO: If you have web page content that matches this app activity's content,
+				// make sure this auto-generated web page URL is correct.
+				// Otherwise, set the URL to null.
+				Uri.parse("http://host/path"),
+				// TODO: Make sure this auto-generated app deep link URI is correct.
+				Uri.parse("android-app://fake.domain.adamlopresto.gogive/http/host/path")
+		);
+		AppIndex.AppIndexApi.start(client, viewAction);
+	}
+
+	@Override
+	public void onStop() {
+		super.onStop();
+
+		// ATTENTION: This was auto-generated to implement the App Indexing API.
+		// See https://g.co/AppIndexing/AndroidStudio for more information.
+		Action viewAction = Action.newAction(
+				Action.TYPE_VIEW, // TODO: choose an action type.
+				"Gift Page", // TODO: Define a title for the content shown.
+				// TODO: If you have web page content that matches this app activity's content,
+				// make sure this auto-generated web page URL is correct.
+				// Otherwise, set the URL to null.
+				Uri.parse("http://host/path"),
+				// TODO: Make sure this auto-generated app deep link URI is correct.
+				Uri.parse("android-app://fake.domain.adamlopresto.gogive/http/host/path")
+		);
+		AppIndex.AppIndexApi.end(client, viewAction);
+		client.disconnect();
+	}
 }

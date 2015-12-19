@@ -210,14 +210,15 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
                 GiftsTable.COLUMN_RECIPIENT + " = ?",
                 new String[]{String.valueOf(idGroup)},
                 "CASE "+GiftsTable.COLUMN_STATUS+
-                	" WHEN '"+Status.Purchased+"' THEN 0 " +
-                	" WHEN '"+Status.Planned  +"' THEN 1 " +
-                	" WHEN '"+Status.Idea     +"' THEN 2 " +
-                	" WHEN '"+Status.Given    +"' THEN 3 " +
-                	" WHEN '"+Status.Rejected +"' THEN 4 " +
+					" WHEN '"+Status.Ordered  +"' THEN 0 " +
+                	" WHEN '"+Status.Purchased+"' THEN 1 " +
+                	" WHEN '"+Status.Planned  +"' THEN 2 " +
+                	" WHEN '"+Status.Idea     +"' THEN 3 " +
+                	" WHEN '"+Status.Given    +"' THEN 4 " +
+                	" WHEN '"+Status.Rejected +"' THEN 5 " +
                 "END, "+
                 "CASE WHEN "+GiftsTable.COLUMN_STATUS+" IN " +
-                		"('"+Status.Purchased+"','"+Status.Planned+"') THEN "+GiftsTable.COLUMN_NAME+
+                		"('"+Status.Ordered+"','"+Status.Purchased+"','"+Status.Planned+"') THEN "+GiftsTable.COLUMN_NAME+
         		    " ELSE "+GiftsTable.COLUMN_DATE+" END"
         );
     }

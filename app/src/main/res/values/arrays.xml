@@ -4,6 +4,7 @@
         <item >Idea</item>
         <item >Rejected</item>
         <item >Planned</item>
+        <item >Ordered</item>
         <item >Purchased</item>
         <item >Given</item>
     </string-array>
