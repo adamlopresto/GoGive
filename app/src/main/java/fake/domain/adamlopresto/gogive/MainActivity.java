@@ -266,7 +266,7 @@ class ExpandableListAdapter extends SimpleCursorTreeAdapter implements LoaderMan
 		((TextView)view.findViewById(R.id.total_spend)).setText(NumberFormat.getCurrencyInstance().format(cursor.getDouble(4)));
 		int planned = cursor.getInt(5);
 		int purchased = cursor.getInt(6);
-		((TextView)view.findViewById(R.id.summary)).setText("Planned: "+planned+", purchased: "+purchased);
+		((TextView)view.findViewById(R.id.summary)).setText("Planned: "+planned+", purchased/ordered: "+purchased);
 		
 		ImageButton create = (ImageButton)view.findViewById(R.id.create_new);
 		if (isExpanded){

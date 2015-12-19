@@ -195,7 +195,7 @@ class ShoppingExpandableListAdapter extends SimpleCursorTreeAdapter implements L
                 		GiftsStoresView.COLUMN_GIFT_NOTES, GiftsStoresView.COLUMN_GIFT, 
                 		GiftsStoresView.COLUMN_RECIPIENT_NAME}, 
                GiftsStoresView.COLUMN_STORE + " IS NULL AND status in ('"+Status.Purchased+"','"+
-                		Status.Planned+"')",
+                		Status.Planned+"', '"+Status.Ordered+"')",
                 null,
                 GiftsStoresView.COLUMN_STATUS
 	        );
@@ -208,7 +208,7 @@ class ShoppingExpandableListAdapter extends SimpleCursorTreeAdapter implements L
                 		GiftsStoresView.COLUMN_GIFT_NOTES, GiftsStoresView.COLUMN_GIFT, 
                 		GiftsStoresView.COLUMN_RECIPIENT_NAME}, 
                GiftsStoresView.COLUMN_STORE + " = ? AND status in ('"+Status.Purchased+"','"+
-                		Status.Planned+"')",
+					    Status.Planned+"', '"+Status.Ordered+"')",
                 new String[]{String.valueOf(idGroup)},
                 GiftsStoresView.COLUMN_STATUS
 	        );
@@ -248,10 +248,15 @@ class ShoppingExpandableListAdapter extends SimpleCursorTreeAdapter implements L
 	@Override
 	protected void bindChildView(View view, Context context, Cursor cursor,
 			boolean isLastChild) {
-		
+
+		String status= cursor.getString(
+				cursor.getColumnIndexOrThrow(GiftsStoresView.COLUMN_STATUS));
 		boolean strikethru = Status.Purchased.toString()
-				.equals(cursor.getString(
-						cursor.getColumnIndexOrThrow(GiftsStoresView.COLUMN_STATUS)));
+				.equals(status)
+				||
+		        Status.Ordered.toString()
+				.equals(status)
+				;
 
 		updateText(view, R.id.recipient, cursor.getString(6), strikethru);
 		updateText(view, R.id.name,      cursor.getString(2), strikethru);
@@ -259,7 +264,7 @@ class ShoppingExpandableListAdapter extends SimpleCursorTreeAdapter implements L
 				strikethru);
 		updateText(view, R.id.notes,     cursor.getString(4), strikethru);
 		
-		view.setTag(Long.valueOf(cursor.getLong(5)));
+		view.setTag(cursor.getLong(5));
 	}
 	
 	private void updateText(View parent, int resource, String text, boolean strikethru){

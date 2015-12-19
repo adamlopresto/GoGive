@@ -26,20 +26,20 @@ public class RecipientsView {
 				+ "r."+COLUMN_NOTES  + ", "
 				+ "r."+COLUMN_DONE   + ", "
 				+ "r."+COLUMN_HIDDEN + ", "
-				+ "(SELECT COUNT(*) FROM gifts WHERE recipient = r._id AND status='Planned') as planned, "
-                + "(SELECT COUNT(*) FROM gifts WHERE recipient = r._id AND status='Purchased') as purchased, "
+				+ "(SELECT COUNT(*) FROM gifts WHERE recipient = r._id AND status='"+Status.Planned+"') as planned, "
+                + "(SELECT COUNT(*) FROM gifts WHERE recipient = r._id AND status in ('"+Status.Purchased+"', '"+Status.Ordered+"')) as purchased, "
 				+ "COALESCE(" +
                         "(SELECT SUM("+GiftsTable.COLUMN_PRICE+") " +
                         "FROM gifts " +
                         "WHERE recipient = r._id " +
-                        "AND status in ('Planned', 'Purchased')" +
+                        "AND status in ('"+Status.Planned+"', '"+Status.Purchased+"', '"+Status.Ordered+"')" +
                         "),0) as spend "
 				+ "FROM " + RecipientsTable.TABLE + " AS r " 
 				);
 	}
 
 	public static void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
-        if (oldVersion < 4){
+        if (oldVersion < 5){
             db.execSQL("DROP VIEW "+VIEW);
             onCreate(db);
         }

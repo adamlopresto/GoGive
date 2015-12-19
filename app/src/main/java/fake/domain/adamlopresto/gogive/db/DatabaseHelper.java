@@ -19,8 +19,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	 * 2: add GiftsStoresView
 	 * 3: add recipient to GiftsStoresView
 	 * 4: change RecipientsView
-	 */	
-	private static final int CURRENT_VERSION = 4;
+	 * 5: change RecipientsView again (updated for "Ordered" status)
+	 */
+	private static final int CURRENT_VERSION = 5;
 	
 	private static DatabaseHelper mInstance;
 	
