@@ -1,7 +1,5 @@
 package fake.domain.adamlopresto.gogive;
 
-import java.util.Date;
-
 import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.ListActivity;
@@ -29,9 +27,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.common.api.GoogleApiClient;
+import java.util.Date;
 
 import fake.domain.adamlopresto.gogive.db.DatabaseHelper;
 import fake.domain.adamlopresto.gogive.db.GiftsStoresTable;
@@ -58,11 +54,6 @@ public class GiftActivity extends ListActivity implements
 
 	private static final int LOADER_GIFTS_STORES = 1;
 	private static final int LOADER_STORES = 2;
-	/**
-	 * ATTENTION: This was auto-generated to implement the App Indexing API.
-	 * See https://g.co/AppIndexing/AndroidStudio for more information.
-	 */
-	private GoogleApiClient client;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +61,7 @@ public class GiftActivity extends ListActivity implements
 		View header = getLayoutInflater().inflate(
 				R.layout.activity_gift_header, null);
 		ListView lv = getListView();
+
 		lv.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
 		lv.addHeaderView(header, null, false);
 
@@ -113,9 +105,6 @@ public class GiftActivity extends ListActivity implements
 
 		if (!extractFromBundle(savedInstanceState))
 			extractFromBundle(getIntent().getExtras());
-		// ATTENTION: This was auto-generated to implement the App Indexing API.
-		// See https://g.co/AppIndexing/AndroidStudio for more information.
-		client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 	}
 
 	@Override
@@ -347,45 +336,5 @@ public class GiftActivity extends ListActivity implements
 			default:
 				// NOOP
 		}
-	}
-
-	@Override
-	public void onStart() {
-		super.onStart();
-
-		// ATTENTION: This was auto-generated to implement the App Indexing API.
-		// See https://g.co/AppIndexing/AndroidStudio for more information.
-		client.connect();
-		Action viewAction = Action.newAction(
-				Action.TYPE_VIEW, // TODO: choose an action type.
-				"Gift Page", // TODO: Define a title for the content shown.
-				// TODO: If you have web page content that matches this app activity's content,
-				// make sure this auto-generated web page URL is correct.
-				// Otherwise, set the URL to null.
-				Uri.parse("http://host/path"),
-				// TODO: Make sure this auto-generated app deep link URI is correct.
-				Uri.parse("android-app://fake.domain.adamlopresto.gogive/http/host/path")
-		);
-		AppIndex.AppIndexApi.start(client, viewAction);
-	}
-
-	@Override
-	public void onStop() {
-		super.onStop();
-
-		// ATTENTION: This was auto-generated to implement the App Indexing API.
-		// See https://g.co/AppIndexing/AndroidStudio for more information.
-		Action viewAction = Action.newAction(
-				Action.TYPE_VIEW, // TODO: choose an action type.
-				"Gift Page", // TODO: Define a title for the content shown.
-				// TODO: If you have web page content that matches this app activity's content,
-				// make sure this auto-generated web page URL is correct.
-				// Otherwise, set the URL to null.
-				Uri.parse("http://host/path"),
-				// TODO: Make sure this auto-generated app deep link URI is correct.
-				Uri.parse("android-app://fake.domain.adamlopresto.gogive/http/host/path")
-		);
-		AppIndex.AppIndexApi.end(client, viewAction);
-		client.disconnect();
 	}
 }
