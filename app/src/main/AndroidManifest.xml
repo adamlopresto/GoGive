@@ -43,7 +43,8 @@
         <activity
             android:name="fake.domain.adamlopresto.gogive.GiftActivity"
             android:label="@string/title_activity_gift"
-            android:parentActivityName="fake.domain.adamlopresto.gogive.MainActivity" >
+            android:parentActivityName="fake.domain.adamlopresto.gogive.MainActivity"
+            android:windowSoftInputMode="adjustPan" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="fake.domain.adamlopresto.gogive.MainActivity" />

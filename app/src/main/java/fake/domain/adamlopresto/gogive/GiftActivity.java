@@ -19,9 +19,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -67,7 +69,9 @@ public class GiftActivity extends ListActivity implements
 		super.onCreate(savedInstanceState);
 		View header = getLayoutInflater().inflate(
 				R.layout.activity_gift_header, null);
-		getListView().addHeaderView(header, null, false);
+		ListView lv = getListView();
+		lv.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+		lv.addHeaderView(header, null, false);
 
 		// Show the Up button in the action bar.
 		setupActionBar();
@@ -79,7 +83,7 @@ public class GiftActivity extends ListActivity implements
 
 		View footer = getLayoutInflater().inflate(
 				R.layout.activity_gift_footer, null);
-		getListView().addFooterView(footer, null, false);
+		lv.addFooterView(footer, null, false);
 		footer.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -97,7 +101,7 @@ public class GiftActivity extends ListActivity implements
 				new int[]{android.R.id.text1}, 0);
 		setListAdapter(adapter);
 
-		getListView().setOnItemLongClickListener(new OnItemLongClickListener() {
+		lv.setOnItemLongClickListener(new OnItemLongClickListener() {
 
 			@Override
 			public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
