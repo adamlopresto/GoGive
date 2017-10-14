@@ -58,9 +58,9 @@ public class GiftActivity extends ListActivity implements
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+        ListView lv = getListView();
 		View header = getLayoutInflater().inflate(
-				R.layout.activity_gift_header, null);
-		ListView lv = getListView();
+				R.layout.activity_gift_header, lv, false);
 
 		lv.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
 		lv.addHeaderView(header, null, false);
@@ -74,7 +74,7 @@ public class GiftActivity extends ListActivity implements
 		status = (Spinner) header.findViewById(R.id.status);
 
 		View footer = getLayoutInflater().inflate(
-				R.layout.activity_gift_footer, null);
+				R.layout.activity_gift_footer, lv, false);
 		lv.addFooterView(footer, null, false);
 		footer.setOnClickListener(new OnClickListener() {
 			@Override
@@ -181,6 +181,7 @@ public class GiftActivity extends ListActivity implements
 			price.setText(c.getString(2));
 			recipient = c.getLong(3);
 			status.setSelection(Status.valueOf(c.getString(4)).ordinal());
+			c.close();
 
 			return true;
 		} else if ((tmpId = b.getLong(RECIPIENT_KEY, -1L)) != -1L) {
